@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Stone Bag - Mystic Meter Edition</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #0a0714;
+      --card-bg: rgba(20, 15, 38, 0.82);
+      --purple-accent: #a855f7;
+      --orange-accent: #f97316;
+      --blue-accent: #38bdf8;
+      --green-accent: #10b981;
+    }
+
+    * {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.22) 0px, transparent 55%),
+        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.16) 0px, transparent 55%),
+        radial-gradient(at 50% 40%, rgba(249, 115, 22, 0.08) 0px, transparent 65%);
+      min-height: 100vh;
+      color: #f3f4f6;
+    }
+
+    /* 3D Glossy Stones */
+    .stone {
+      border-radius: 9999px;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.6), inset 0 3px 6px rgba(255, 255, 255, 0.5), 0 4px 10px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .stone::after {
+      content: '';
+      position: absolute;
+      top: 14%;
+      left: 20%;
+      width: 32%;
+      height: 22%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 80%);
+      pointer-events: none;
+    }
+
+    .stone-purple {
+      background: radial-gradient(circle at 35% 35%, #e9d5ff 0%, #a855f7 45%, #6b21a8 85%, #3b0764 100%);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.5), inset 0 -3px 6px rgba(0,0,0,0.7), inset 0 3px 6px rgba(255,255,255,0.7);
+    }
+
+    .stone-orange {
+      background: radial-gradient(circle at 35% 35%, #fed7aa 0%, #f97316 45%, #c2410c 85%, #7c2d12 100%);
+      box-shadow: 0 0 12px rgba(249, 115, 22, 0.5), inset 0 -3px 6px rgba(0,0,0,0.7), inset 0 3px 6px rgba(255,255,255,0.7);
+    }
+
+    .stone-blue {
+      background: radial-gradient(circle at 35% 35%, #bae6fd 0%, #38bdf8 45%, #0284c7 85%, #0c4a6e 100%);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5), inset 0 -3px 6px rgba(0,0,0,0.7), inset 0 3px 6px rgba(255,255,255,0.7);
+    }
+
+    .stone-green {
+      background: radial-gradient(circle at 35% 35%, #a7f3d0 0%, #10b981 45%, #047857 85%, #064e3b 100%);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.7), inset 0 -3px 6px rgba(0,0,0,0.7), inset 0 3px 6px rgba(255,255,255,0.7);
+    }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animations */
+    @keyframes bagRattle {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      15% { transform: translate(-6px, 3px) rotate(-7deg) scale(1.04); }
+      30% { transform: translate(6px, -3px) rotate(7deg); }
+      45% { transform: translate(-7px, -2px) rotate(-5deg); }
+      60% { transform: translate(7px, 3px) rotate(5deg); }
+      75% { transform: translate(-4px, -2px) rotate(-3deg); }
+      90% { transform: translate(4px, 2px) rotate(3deg); }
+    }
+    .bag-rattling {
+      animation: bagRattle 0.8s ease-in-out infinite;
+    }
+
+    @keyframes popReveal {
+      0% { transform: scale(0.2) translateY(50px); opacity: 0; filter: blur(8px); }
+      70% { transform: scale(1.15) translateY(-8px); opacity: 1; filter: blur(0); }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .pop-reveal {
+      animation: popReveal 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes mysticPulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    .mystic-pulse {
+      animation: mysticPulse 2.5s infinite ease-in-out;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 sm:p-5 max-w-md mx-auto relative overflow-x-hidden pb-8">
+
+  <!-- Header with Brand, Round Info, Rules & Sound -->
+  <header class="w-full flex items-center justify-between py-2 border-b border-white/10 mb-2.5">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-xl bg-purple-950/90 border border-purple-500/40 flex items-center justify-center shadow-inner">
+        <span class="text-xl">🔮</span>
+      </div>
+      <div>
+        <h1 class="text-lg font-black tracking-tight uppercase leading-none bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 bg-clip-text text-transparent">Stone Bag</h1>
+        <span class="text-[10px] tracking-wider text-purple-300/80 font-semibold uppercase" id="roundIndicator">10-Draw Trial • Round 1</span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <button id="rulesBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95 transition text-xs flex items-center gap-1 font-medium text-purple-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Rules
+      </button>
+      <button id="soundToggle" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95 transition text-xs text-purple-200">
+        <span id="soundIcon">🔊</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mystic Meter Lifetime Gauge Bar -->
+  <div class="glass-panel rounded-2xl p-2.5 mb-2.5 border-purple-500/30 flex flex-col gap-1.5 shadow-lg shadow-purple-950/40">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] font-black tracking-wider uppercase bg-gradient-to-r from-purple-300 to-amber-300 bg-clip-text text-transparent flex items-center gap-1">
+          <span>✨</span> Mystic Meter
+        </span>
+        <span id="mysticTierBadge" class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+          Novice Diviner
+        </span>
+      </div>
+      <div class="text-[11px] font-bold text-gray-300">
+        Avg: <span id="mysticAvgDisplay" class="font-mono text-purple-300 font-extrabold">50.0</span> / 100
+      </div>
+    </div>
+
+    <!-- Gauge Progress -->
+    <div class="w-full bg-black/50 h-2 rounded-full overflow-hidden p-0.5 border border-white/10 relative">
+      <div id="mysticMeterBar" class="h-full rounded-full bg-gradient-to-r from-rose-500 via-amber-400 via-purple-400 to-emerald-400 transition-all duration-700 w-1/2"></div>
+      <!-- Threshold marker at 70% -->
+      <div class="absolute top-0 bottom-0 left-[70%] w-0.5 bg-white/40" title="Survival Threshold"></div>
+    </div>
+    
+    <div class="flex items-center justify-between text-[9px] text-gray-400 font-mono px-0.5">
+      <span>0 (Reckless)</span>
+      <span class="text-amber-400/80">Threshold: 7+ Plays</span>
+      <span>100 (Master)</span>
+    </div>
+  </div>
+
+  <section class="grid grid-cols-2 gap-2.5 mb-2.5">
+    <!-- Purple Bank Card -->
+    <div class="glass-panel rounded-2xl p-3 relative overflow-hidden border-purple-500/30">
+      <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-purple-600/20 rounded-full blur-xl pointer-events-none"></div>
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs uppercase tracking-wider font-semibold text-purple-300/80">Purple Bank</span>
+        <div class="stone stone-purple w-4 h-4"></div>
+      </div>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-3xl font-black text-purple-100 tracking-tight" id="bankDisplay">7</span>
+        <span class="text-xs font-semibold text-purple-300/80">Stones</span>
+      </div>
+      <div class="text-[10px] text-purple-300/60 mt-1 flex items-center justify-between">
+        <span>Start: <strong id="startBankBadge" class="text-purple-200">7</strong></span>
+        <span id="bankNetBadge" class="font-bold text-gray-400 font-mono">+0</span>
+      </div>
+    </div>
+
+    <!-- Draws Remaining Card with 7-Draw Threshold Mark -->
+    <div class="glass-panel rounded-2xl p-3 relative overflow-hidden border-cyan-500/25">
+      <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-cyan-600/15 rounded-full blur-xl pointer-events-none"></div>
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs uppercase tracking-wider font-semibold text-cyan-300/80">Draws Progress</span>
+        <span class="text-xs font-bold text-cyan-400 font-mono" id="drawRatioBadge">0 / 10</span>
+      </div>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-3xl font-black text-cyan-100 tracking-tight" id="playsRemaining">10</span>
+        <span class="text-xs font-semibold text-cyan-300/80">Plays Left</span>
+      </div>
+      <!-- Progress Bar (10 steps) with Threshold Indicator -->
+      <div class="w-full bg-black/40 h-2 rounded-full mt-1.5 overflow-hidden flex relative border border-white/10">
+        <div id="drawProgressBar" class="bg-gradient-to-r from-purple-500 to-cyan-400 h-full w-0 transition-all duration-300"></div>
+        <div class="absolute left-[70%] top-0 bottom-0 w-0.5 bg-amber-400/80" title="Safe Threshold 7 Plays"></div>
+      </div>
+      <div class="text-[9px] text-gray-400 mt-1 flex justify-between font-mono">
+        <span>0</span>
+        <span class="text-amber-400 font-bold">Goal: 7+ (Safe)</span>
+        <span class="text-emerald-400 font-bold">10 (Jackpot)</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="glass-panel rounded-2xl p-3 mb-2.5 border-white/10">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Bag Inventory</span>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-400 font-medium">Without Replacement</span>
+      </div>
+      <span class="text-xs font-bold text-purple-300 font-mono" id="bagTotalDisplay">15 / 15 Left</span>
+    </div>
+
+    <!-- Probabilities 3-column breakdown -->
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <!-- Orange Tracker -->
+      <div class="p-2 rounded-xl bg-orange-950/30 border border-orange-500/25 flex flex-col items-center justify-center relative">
+        <div class="flex items-center gap-1.5 mb-1">
+          <div class="stone stone-orange w-4 h-4"></div>
+          <span class="text-xs font-bold text-orange-400">Orange</span>
+        </div>
+        <div class="text-base font-extrabold text-orange-200 leading-tight" id="probOrange">46.7%</div>
+        <div class="text-[10px] text-orange-300/70 font-mono" id="countOrange">7 in bag</div>
+      </div>
+
+      <!-- Blue Tracker -->
+      <div class="p-2 rounded-xl bg-sky-950/30 border border-sky-500/25 flex flex-col items-center justify-center relative">
+        <div class="flex items-center gap-1.5 mb-1">
+          <div class="stone stone-blue w-4 h-4"></div>
+          <span class="text-xs font-bold text-sky-400">Blue</span>
+        </div>
+        <div class="text-base font-extrabold text-sky-200 leading-tight" id="probBlue">46.7%</div>
+        <div class="text-[10px] text-sky-300/70 font-mono" id="countBlue">7 in bag</div>
+      </div>
+
+      <!-- Green Tracker -->
+      <div class="p-2 rounded-xl bg-emerald-950/30 border border-emerald-500/25 flex flex-col items-center justify-center relative">
+        <div class="flex items-center gap-1.5 mb-1">
+          <div class="stone stone-green w-4 h-4"></div>
+          <span class="text-xs font-bold text-emerald-400">Green</span>
+        </div>
+        <div class="text-base font-extrabold text-emerald-200 leading-tight" id="probGreen">6.7%</div>
+        <div class="text-[10px] text-emerald-300/70 font-mono" id="countGreen">1 in bag</div>
+      </div>
+    </div>
+
+    <!-- Discarded Stones (Drawn / Left Outside) -->
+    <div class="mt-2.5 pt-2 border-t border-white/10 flex flex-col gap-1.5">
+      <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+        <span>Drawn / Left Outside:</span>
+        <span id="drawnCountBadge" class="font-mono text-gray-300">0 / 10 drawn</span>
+      </div>
+      <div id="discardTray" class="flex items-center gap-1.5 min-h-[30px] overflow-x-auto no-scrollbar py-1 px-1 bg-black/30 rounded-xl border border-white/5">
+        <span class="text-[11px] text-gray-500 italic ml-1" id="emptyTrayText">No stones drawn this round</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="glass-panel rounded-2xl p-3 mb-2.5 border-purple-500/20 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[130px]">
+    <div class="absolute inset-0 bg-gradient-to-b from-purple-950/30 via-transparent to-black/50 pointer-events-none"></div>
+
+    <div class="relative w-24 h-24 flex items-center justify-center">
+      <div id="orbGlow" class="absolute w-24 h-24 rounded-full bg-purple-600/30 blur-xl transition-all duration-500"></div>
+
+      <!-- Stylized Pouch SVG -->
+      <div id="bagGraphic" class="relative z-10 transition-transform duration-300 flex items-center justify-center">
+        <svg class="w-20 h-20 filter drop-shadow-lg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 35 C20 45, 15 70, 22 86 C28 98, 72 98, 78 86 C85 70, 80 45, 70 35 Z" fill="url(#pouchGradient)" stroke="#8b5cf6" stroke-width="2"/>
+          <path d="M28 35 C32 30, 40 26, 50 26 C60 26, 68 30, 72 35 C68 40, 60 38, 50 38 C40 38, 32 40, 28 35 Z" fill="#6d28d9" stroke="#c084fc" stroke-width="1.5"/>
+          <path d="M36 34 Q50 40 64 34" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="40" r="3" fill="#fbbf24"/>
+          <circle cx="50" cy="65" r="14" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <path d="M50 56 L50 74 M42 65 L58 65" stroke="#e9d5ff" stroke-width="1.5"/>
+          <defs>
+            <linearGradient id="pouchGradient" x1="50" y1="26" x2="50" y2="95" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#4c1d95"/>
+              <stop offset="0.6" stop-color="#2e1065"/>
+              <stop offset="1" stop-color="#1e1b4b"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Pop Reveal Result Stone -->
+      <div id="revealedStoneContainer" class="absolute z-20 hidden">
+        <div id="revealedStone" class="stone w-16 h-16 shadow-2xl pop-reveal text-sm font-extrabold flex items-center justify-center uppercase"></div>
+      </div>
+    </div>
+
+    <!-- Status Message Banner -->
+    <div id="actionStatus" class="mt-1.5 text-xs font-semibold text-purple-200 tracking-wide">
+      Select color, set wager, and draw. Reach 7+ plays for high Mystic rating!
+    </div>
+  </section>
+
+  <section class="glass-panel rounded-2xl p-3.5 mb-2.5 border-white/10 flex flex-col gap-3">
+    <!-- Step 1: Color Selection -->
+    <div>
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">1. Select Target Color</span>
+        <span id="targetSelectedBadge" class="text-[11px] font-semibold text-purple-300">Choose a color</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <!-- Orange Pick -->
+        <button id="btnPickOrange" onclick="selectColor('orange')" class="color-btn relative py-2.5 px-2 rounded-xl bg-orange-950/40 border-2 border-orange-500/30 hover:border-orange-500 transition-all flex flex-col items-center gap-1 active:scale-95">
+          <div class="stone stone-orange w-5 h-5"></div>
+          <span class="text-xs font-bold text-orange-300">ORANGE</span>
+          <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300">2x Payout</span>
+        </button>
+
+        <!-- Blue Pick -->
+        <button id="btnPickBlue" onclick="selectColor('blue')" class="color-btn relative py-2.5 px-2 rounded-xl bg-sky-950/40 border-2 border-sky-500/30 hover:border-sky-500 transition-all flex flex-col items-center gap-1 active:scale-95">
+          <div class="stone stone-blue w-5 h-5"></div>
+          <span class="text-xs font-bold text-sky-300">BLUE</span>
+          <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300">2x Payout</span>
+        </button>
+
+        <!-- Green Pick (Highlighted with high risk/reward warning) -->
+        <button id="btnPickGreen" onclick="selectColor('green')" class="color-btn relative py-2.5 px-2 rounded-xl bg-emerald-950/40 border-2 border-emerald-500/30 hover:border-emerald-500 transition-all flex flex-col items-center gap-1 active:scale-95">
+          <div class="stone stone-green w-5 h-5"></div>
+          <span class="text-xs font-bold text-emerald-300">GREEN</span>
+          <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">15x Payout</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Wager Controls -->
+    <div class="pt-2 border-t border-white/10">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">2. Wager Purple Stones</span>
+        <span class="text-[11px] font-bold text-amber-300">
+          Potential Payout: <span id="potentialPayoutText" class="font-mono text-xs">0</span> Stones
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="adjustWager(-1)" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 flex items-center justify-center font-bold text-lg active:scale-95 transition">-</button>
+        
+        <div class="flex-1 bg-black/40 border border-purple-500/40 rounded-xl py-1 px-3 flex items-center justify-center gap-2">
+          <div class="stone stone-purple w-5 h-5"></div>
+          <input type="number" id="wagerInput" min="1" max="7" value="1" class="w-16 bg-transparent text-center text-xl font-black text-white focus:outline-none" oninput="onWagerDirectInput(this.value)">
+        </div>
+
+        <button onclick="adjustWager(1)" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 flex items-center justify-center font-bold text-lg active:scale-95 transition">+</button>
+      </div>
+
+      <!-- Quick Bet Shortcuts -->
+      <div class="grid grid-cols-4 gap-1.5 mt-2">
+        <button onclick="setWager(1)" class="py-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-purple-200 active:scale-95 transition">1</button>
+        <button onclick="setWagerHalf()" class="py-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-purple-200 active:scale-95 transition">1/2</button>
+        <button onclick="setWager(5)" class="py-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-purple-200 active:scale-95 transition">5</button>
+        <button onclick="setWagerMax()" class="py-1 px-2 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/30 text-xs font-extrabold text-purple-300 active:scale-95 transition">MAX</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Draw Trigger Action Button -->
+    <div class="mt-1 flex gap-2">
+      <button id="drawActionBtn" onclick="performDraw()" class="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 active:scale-[0.98] font-black text-sm tracking-wide uppercase text-white shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all">
+        <span>DRAW STONE FROM BAG</span>
+        <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+      </button>
+      <button id="quickResetRoundBtn" onclick="promptRestartRound()" title="Restart Round" class="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95 text-gray-300 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="glass-panel rounded-2xl p-3 border-white/10">
+    <div class="flex items-center justify-between mb-1.5">
+      <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Round History</span>
+      <span class="text-[10px] text-gray-500 font-mono" id="historyCounter">Draw 0 of 10</span>
+    </div>
+    <div id="historyLogList" class="flex flex-col gap-1.5 max-h-24 overflow-y-auto no-scrollbar pr-1">
+      <div class="text-[11px] text-gray-500 text-center py-2 italic">Round started. Reach play 7 to avoid survival penalties!</div>
+    </div>
+  </section>
+
+  <div id="roundEndModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-sm rounded-3xl p-5 border border-purple-500/40 text-center relative shadow-2xl animate-fade-in max-h-[92vh] overflow-y-auto no-scrollbar">
+      <div id="roundEndEmoji" class="text-3xl mb-1">🔮</div>
+      <h2 class="text-xl font-black uppercase text-white mb-0.5" id="roundEndTitle">Round Evaluated</h2>
+      <p class="text-xs text-purple-300/80 mb-3" id="roundEndSubtitle">10-Draw Trial Completed</p>
+
+      <!-- Mystic Score Hero Badge -->
+      <div class="p-3 rounded-2xl bg-purple-950/60 border border-purple-500/50 mb-3 text-center">
+        <div class="text-[10px] uppercase font-bold tracking-widest text-purple-300">Round Mystic Score</div>
+        <div class="text-4xl font-black tracking-tight my-0.5 bg-gradient-to-r from-amber-300 via-pink-400 to-purple-300 bg-clip-text text-transparent font-mono" id="modalMysticScore">
+          88
+        </div>
+        <div class="text-xs font-extrabold uppercase text-amber-300" id="modalMysticRating">
+          Master Diviner
+        </div>
+      </div>
+
+      <!-- Detailed Score Factor Breakdown -->
+      <div class="bg-black/50 rounded-2xl p-3 border border-white/10 space-y-2 mb-3 text-left">
+        <!-- Survival Plays Row -->
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-300 flex items-center gap-1">
+            <span>⏳</span> Survival (<span id="modalPlaysCount">10</span>/10 plays)
+          </span>
+          <span class="font-mono font-bold" id="modalSurvivalScore">+50</span>
+        </div>
+
+        <!-- Green Recklessness Penalty Row -->
+        <div id="modalGreenPenaltyRow" class="flex items-center justify-between text-xs text-rose-400 hidden">
+          <span class="flex items-center gap-1">
+            <span>💀</span> Greed Penalty (Ended on Green)
+          </span>
+          <span class="font-mono font-bold" id="modalGreenPenaltyScore">-35</span>
+        </div>
+
+        <!-- Purple Stone Wealth Row -->
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-300 flex items-center gap-1">
+            <span>💎</span> Stone Wealth (<span id="modalStonesCount">12</span> purple)
+          </span>
+          <span class="font-mono font-bold" id="modalWealthScore">+38</span>
+        </div>
+
+        <div class="border-t border-white/10 pt-1.5 flex items-center justify-between text-xs">
+          <span class="text-purple-300 font-semibold">Updated Lifetime Avg</span>
+          <span class="font-mono font-extrabold text-purple-200" id="modalLifetimeAvg">72.4</span>
+        </div>
+      </div>
+
+      <!-- Bank Stat Summary -->
+      <div class="bg-black/30 rounded-2xl p-2.5 border border-white/5 grid grid-cols-3 gap-1 mb-3 text-center">
+        <div>
+          <div class="text-[9px] text-gray-400 uppercase font-semibold">Start Bank</div>
+          <div class="text-sm font-black text-gray-200" id="summaryStartBank">7</div>
+        </div>
+        <div>
+          <div class="text-[9px] text-gray-400 uppercase font-semibold">Final Bank</div>
+          <div class="text-sm font-black text-purple-300" id="summaryFinalBank">12</div>
+        </div>
+        <div>
+          <div class="text-[9px] text-gray-400 uppercase font-semibold">Net Stones</div>
+          <div class="text-sm font-black" id="summaryNetProfit">+5</div>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-gray-300 mb-4 leading-snug" id="roundEndAdvice">
+        Keep surviving to raise your lifetime Mystic standing!
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col gap-2">
+        <button id="btnContinueNextRound" onclick="startNextRound(false)" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-extrabold text-xs uppercase text-white shadow-lg active:scale-95 transition">
+          START NEXT ROUND (KEEP BANK)
+        </button>
+        <button onclick="startNextRound(true)" class="w-full py-2 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 font-bold text-[11px] uppercase text-gray-300 active:scale-95 transition">
+          FRESH START (RESET TO 7 STONES)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rulesModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-sm rounded-3xl p-5 border border-purple-500/30 relative text-left">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+        <h3 class="text-base font-black text-white uppercase flex items-center gap-1.5">
+          <span>📜</span> Rules & Mystic Scoring
+        </h3>
+        <button onclick="toggleRulesModal(false)" class="p-1 text-gray-400 hover:text-white text-lg">✕</button>
+      </div>
+      <div class="space-y-2.5 text-xs text-purple-200/90 leading-relaxed max-h-[68vh] overflow-y-auto no-scrollbar">
+        <!-- Mystic Meter Scoring Breakdown -->
+        <div class="p-2.5 rounded-xl bg-purple-900/40 border border-purple-400/40">
+          <strong class="text-amber-300 block mb-1">✨ The Mystic Meter (Survival First!):</strong>
+          <ul class="list-disc list-inside space-y-1 text-gray-200">
+            <li><strong class="text-rose-400">&lt; 7 Plays:</strong> Severe exponential penalty per missed play. Leaving early is considered failure!</li>
+            <li><strong class="text-rose-500">The Greed Penalty:</strong> If you go bankrupt betting on GREEN, an extra catastrophic penalty (-35 pts) is levied.</li>
+            <li><strong class="text-emerald-300">7+ Plays:</strong> Steeper bonus points per survival milestone.</li>
+            <li><strong class="text-amber-300">10 Full Plays Intact:</strong> Grants a massive completion jackpot!</li>
+            <li><strong class="text-purple-300">Purple Stones:</strong> Final bank heavily scales the remaining portion of your score.</li>
+          </ul>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
+          <strong class="text-purple-300 block mb-1">🎯 Bag Composition (15 Stones Total):</strong>
+          <ul class="list-disc list-inside space-y-1 text-gray-300">
+            <li><strong>7 Orange Stones</strong> (46.7% start, 2x payout)</li>
+            <li><strong>7 Blue Stones</strong> (46.7% start, 2x payout)</li>
+            <li><strong>1 Green Stone</strong> (6.7% start, 15x payout)</li>
+            <li>Stones stay outside when drawn (without replacement) until the round resets.</li>
+          </ul>
+        </div>
+      </div>
+      <button onclick="toggleRulesModal(false)" class="mt-4 w-full py-2.5 bg-purple-600 rounded-xl font-bold text-xs uppercase text-white active:scale-95 transition">
+        Got It, Return to Game
+      </button>
+    </div>
+  </div>
+
+  <script>
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      }
+      playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.1) {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e) {}
+      }
+      click() { this.playTone(600, 'triangle', 0.05, 0.08); }
+      chip() { this.playTone(850, 'sine', 0.08, 0.09); }
+      shake() {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          for (let i = 0; i < 4; i++) {
+            setTimeout(() => this.playTone(180 + Math.random() * 120, 'triangle', 0.05, 0.06), i * 110);
+          }
+        } catch(e) {}
+      }
+      win() {
+        if (!this.enabled) return;
+        [440, 554, 659, 880].forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'sine', 0.18, 0.12), idx * 80);
+        });
+      }
+      jackpot() {
+        if (!this.enabled) return;
+        [523, 659, 783, 1046, 1318].forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'triangle', 0.3, 0.18), idx * 70);
+        });
+      }
+      loss() {
+        if (!this.enabled) return;
+        this.playTone(260, 'sawtooth', 0.2, 0.08);
+        setTimeout(() => this.playTone(190, 'sawtooth', 0.25, 0.08), 120);
+      }
+      penalty() {
+        if (!this.enabled) return;
+        this.playTone(150, 'sawtooth', 0.4, 0.15);
+      }
+    }
+
+    const sfx = new SoundFX();
+
+    const MAX_DRAWS = 10;
+    const STARTING_BANK_DEFAULT = 7;
+    const PAYOUTS = { orange: 2, blue: 2, green: 15 };
+
+    let roundNumber = 1;
+    let bank = STARTING_BANK_DEFAULT;
+    let roundStartBank = STARTING_BANK_DEFAULT;
+    let currentDrawIndex = 0;
+    let bag = [];
+    let drawnStones = [];
+    let selectedColor = null;
+    let currentWager = 1;
+    let isDrawing = false;
+    let lastBetColor = null; // Track if bankrupt bet was on green
+
+    // Mystic Score Lifetime tracking
+    let lifetimeRounds = [];
+    try {
+      const saved = localStorage.getItem('stone_bag_mystic_history');
+      if (saved) lifetimeRounds = JSON.parse(saved);
+    } catch(e) {
+      lifetimeRounds = [];
+    }
+
+    function initializeBag() {
+      bag = [];
+      for (let i = 0; i < 7; i++) bag.push('orange');
+      for (let i = 0; i < 7; i++) bag.push('blue');
+      bag.push('green');
+      for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+      }
+    }
+
+    function calculateMysticScore(playsCompleted, finalStones, startingStones, endedOnGreenLoss) {
+      // 1. Survival / Progression Points
+      let survivalScore = 0;
+      const missedBelowSeven = Math.max(0, 7 - playsCompleted);
+
+      if (playsCompleted < 7) {
+        // Severe exponential penalty for each play missed below 7
+        // Miss 1 (6 plays): -15
+        // Miss 2 (5 plays): -30
+        // Miss 3 (4 plays): -48
+        // Miss 4 (3 plays): -68
+        // Miss 5 (2 plays): -90
+        // Miss 6 (1 play):  -115
+        // Miss 7 (0 plays): -145
+        survivalScore = -Math.round(15 * missedBelowSeven * Math.pow(1.22, missedBelowSeven - 1));
+      } else {
+        // Rewards for 7, 8, 9, 10
+        // Base bonus at 7: +20
+        // 8 plays: +32
+        // 9 plays: +46
+        // 10 plays (full completion): +65
+        const extraBeyondSeven = playsCompleted - 7;
+        survivalScore = 20 + (extraBeyondSeven * 10) + (playsCompleted === 10 ? 15 : 0);
+      }
+
+      // 2. Greed Penalty (Ended round lost on green bet)
+      let greedPenalty = 0;
+      if (endedOnGreenLoss) {
+        greedPenalty = -35;
+      }
+
+      // 3. Purple Stone Wealth Score
+      // Scaled based on ending balance vs starting balance
+      // 0 stones = 0 pts
+      // 7 stones (even) = 25 pts
+      // 14+ stones = 45+ pts
+      let wealthScore = 0;
+      if (finalStones > 0) {
+        wealthScore = Math.round(Math.min(50, (finalStones / startingStones) * 25));
+      }
+
+      // Base offset so average competent players track around 40-70
+      let rawScore = 30 + survivalScore + greedPenalty + wealthScore;
+      
+      // Clamp between 0 and 100
+      const finalScore = Math.max(0, Math.min(100, rawScore));
+
+      return {
+        totalScore: finalScore,
+        survivalScore: survivalScore,
+        greedPenalty: greedPenalty,
+        wealthScore: wealthScore
+      };
+    }
+
+    function getMysticRatingTitle(score) {
+      if (score >= 90) return 'Mystic Grandmaster';
+      if (score >= 75) return 'Master Diviner';
+      if (score >= 60) return 'Adept Alchemist';
+      if (score >= 40) return 'Cautious Seeker';
+      if (score >= 20) return 'Novice Diviner';
+      return 'Reckless Gambler';
+    }
+
+    function getLifetimeAverage() {
+      if (lifetimeRounds.length === 0) return 50.0;
+      const sum = lifetimeRounds.reduce((acc, curr) => acc + curr, 0);
+      return (sum / lifetimeRounds.length).toFixed(1);
+    }
+
+    function updateMysticGaugeUI() {
+      const avg = getLifetimeAverage();
+      document.getElementById('mysticAvgDisplay').innerText = avg;
+      const bar = document.getElementById('mysticMeterBar');
+      bar.style.width = `${Math.min(100, Math.max(5, avg))}%`;
+
+      const ratingTitle = getMysticRatingTitle(avg);
+      const badge = document.getElementById('mysticTierBadge');
+      badge.innerText = ratingTitle;
+
+      if (avg >= 75) {
+        badge.className = 'text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      } else if (avg >= 45) {
+        badge.className = 'text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30';
+      } else {
+        badge.className = 'text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30';
+      }
+    }
+
+    function updateProbabilitiesUI() {
+      const total = bag.length;
+      const counts = { orange: 0, blue: 0, green: 0 };
+      bag.forEach(c => counts[c]++);
+
+      document.getElementById('bagTotalDisplay').innerText = `${total} / 15 Left`;
+
+      const pOrange = total > 0 ? ((counts.orange / total) * 100).toFixed(1) : '0.0';
+      document.getElementById('probOrange').innerText = `${pOrange}%`;
+      document.getElementById('countOrange').innerText = `${counts.orange} in bag`;
+
+      const pBlue = total > 0 ? ((counts.blue / total) * 100).toFixed(1) : '0.0';
+      document.getElementById('probBlue').innerText = `${pBlue}%`;
+      document.getElementById('countBlue').innerText = `${counts.blue} in bag`;
+
+      const pGreen = total > 0 ? ((counts.green / total) * 100).toFixed(1) : '0.0';
+      document.getElementById('probGreen').innerText = `${pGreen}%`;
+      document.getElementById('countGreen').innerText = `${counts.green} in bag`;
+    }
+
+    function updateDrawnTrayUI() {
+      const tray = document.getElementById('discardTray');
+      const badge = document.getElementById('drawnCountBadge');
+      badge.innerText = `${drawnStones.length} / ${MAX_DRAWS} drawn`;
+
+      if (drawnStones.length === 0) {
+        tray.innerHTML = `<span class="text-[11px] text-gray-500 italic ml-1" id="emptyTrayText">No stones drawn this round</span>`;
+        return;
+      }
+
+      tray.innerHTML = '';
+      drawnStones.forEach((color, idx) => {
+        const stoneDiv = document.createElement('div');
+        stoneDiv.className = `stone stone-${color} w-5 h-5 flex-shrink-0 animate-scale`;
+        stoneDiv.title = `Draw #${idx + 1}: ${color.toUpperCase()}`;
+        tray.appendChild(stoneDiv);
+      });
+      tray.scrollLeft = tray.scrollWidth;
+    }
+
+    function updateDashboardUI() {
+      document.getElementById('bankDisplay').innerText = bank;
+      document.getElementById('startBankBadge').innerText = roundStartBank;
+      document.getElementById('roundIndicator').innerText = `10-Draw Trial • Round ${roundNumber}`;
+
+      const netBank = bank - roundStartBank;
+      const netBadge = document.getElementById('bankNetBadge');
+      netBadge.innerText = (netBank >= 0 ? `+${netBank}` : `${netBank}`);
+      netBadge.className = `font-bold text-[10px] font-mono ${netBank >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      const remainingPlays = MAX_DRAWS - currentDrawIndex;
+      document.getElementById('playsRemaining').innerText = remainingPlays;
+      document.getElementById('drawRatioBadge').innerText = `${currentDrawIndex} / ${MAX_DRAWS}`;
+      document.getElementById('historyCounter').innerText = `Draw ${currentDrawIndex} of ${MAX_DRAWS}`;
+
+      const progressPercent = (currentDrawIndex / MAX_DRAWS) * 100;
+      document.getElementById('drawProgressBar').style.width = `${progressPercent}%`;
+
+      const wagerInput = document.getElementById('wagerInput');
+      wagerInput.max = Math.max(1, bank);
+      if (currentWager > bank) {
+        currentWager = Math.max(1, bank);
+      }
+      wagerInput.value = currentWager;
+
+      updatePotentialPayout();
+      updateProbabilitiesUI();
+      updateDrawnTrayUI();
+      updateMysticGaugeUI();
+
+      const drawBtn = document.getElementById('drawActionBtn');
+      if (bank <= 0 && !isDrawing) {
+        drawBtn.disabled = true;
+        drawBtn.classList.add('opacity-50', 'pointer-events-none');
+        document.getElementById('actionStatus').innerText = 'Bankrupt! No purple stones left.';
+      } else {
+        drawBtn.disabled = false;
+        drawBtn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+
+    function updatePotentialPayout() {
+      const text = document.getElementById('potentialPayoutText');
+      if (!selectedColor) {
+        text.innerText = '0';
+        return;
+      }
+      const mult = PAYOUTS[selectedColor] || 0;
+      text.innerText = currentWager * mult;
+    }
+
+    function selectColor(color) {
+      if (isDrawing) return;
+      sfx.click();
+      selectedColor = color;
+
+      const buttons = {
+        orange: document.getElementById('btnPickOrange'),
+        blue: document.getElementById('btnPickBlue'),
+        green: document.getElementById('btnPickGreen')
+      };
+
+      Object.keys(buttons).forEach(c => {
+        const btn = buttons[c];
+        if (c === color) {
+          btn.classList.add('ring-2', 'ring-white', 'scale-105', 'bg-white/10');
+        } else {
+          btn.classList.remove('ring-2', 'ring-white', 'scale-105', 'bg-white/10');
+        }
+      });
+
+      const badge = document.getElementById('targetSelectedBadge');
+      badge.innerText = `Selected: ${color.toUpperCase()} (${PAYOUTS[color]}x)`;
+      badge.className = `text-[11px] font-bold ${
+        color === 'orange' ? 'text-orange-400' : color === 'blue' ? 'text-sky-400' : 'text-emerald-400'
+      }`;
+
+      updatePotentialPayout();
+    }
+
+    function adjustWager(delta) {
+      if (isDrawing) return;
+      sfx.chip();
+      let next = currentWager + delta;
+      if (next < 1) next = 1;
+      if (next > bank) next = bank;
+      currentWager = next;
+      document.getElementById('wagerInput').value = currentWager;
+      updatePotentialPayout();
+    }
+
+    function setWager(amt) {
+      if (isDrawing) return;
+      sfx.chip();
+      currentWager = Math.min(Math.max(1, amt), Math.max(1, bank));
+      document.getElementById('wagerInput').value = currentWager;
+      updatePotentialPayout();
+    }
+
+    function setWagerHalf() {
+      if (isDrawing) return;
+      sfx.chip();
+      setWager(Math.max(1, Math.floor(bank / 2)));
+    }
+
+    function setWagerMax() {
+      if (isDrawing) return;
+      sfx.chip();
+      setWager(bank);
+    }
+
+    function onWagerDirectInput(val) {
+      let num = parseInt(val, 10);
+      if (isNaN(num) || num < 1) num = 1;
+      if (num > bank) num = bank;
+      currentWager = num;
+      updatePotentialPayout();
+    }
+
+    function performDraw() {
+      if (isDrawing) return;
+
+      if (!selectedColor) {
+        document.getElementById('actionStatus').innerHTML = '⚠️ <span class="text-amber-300 font-bold">Please select a target color first!</span>';
+        sfx.loss();
+        return;
+      }
+
+      if (bank < 1) {
+        showRoundEndModal(true);
+        return;
+      }
+
+      if (currentWager > bank) {
+        currentWager = bank;
+        document.getElementById('wagerInput').value = currentWager;
+      }
+
+      lastBetColor = selectedColor;
+      isDrawing = true;
+      const statusEl = document.getElementById('actionStatus');
+      statusEl.innerHTML = 'Shaking stone bag... drawing...';
+
+      // Deduct wager upfront
+      bank -= currentWager;
+      updateDashboardUI();
+
+      const bagGraphic = document.getElementById('bagGraphic');
+      const revealedContainer = document.getElementById('revealedStoneContainer');
+      const revealedStone = document.getElementById('revealedStone');
+      const orbGlow = document.getElementById('orbGlow');
+
+      revealedContainer.classList.add('hidden');
+      bagGraphic.classList.add('bag-rattling');
+      sfx.shake();
+
+      setTimeout(() => {
+        const drawnIndex = Math.floor(Math.random() * bag.length);
+        const drawnColor = bag.splice(drawnIndex, 1)[0];
+        drawnStones.push(drawnColor);
+        currentDrawIndex++;
+
+        bagGraphic.classList.remove('bag-rattling');
+
+        // Reveal Stone
+        revealedStone.className = `stone stone-${drawnColor} w-16 h-16 shadow-2xl pop-reveal text-xs font-black flex items-center justify-center uppercase tracking-wider`;
+        revealedStone.innerText = drawnColor;
+        revealedContainer.classList.remove('hidden');
+
+        if (drawnColor === 'orange') orbGlow.className = 'absolute w-28 h-28 rounded-full bg-orange-500/40 blur-2xl transition-all duration-300';
+        else if (drawnColor === 'blue') orbGlow.className = 'absolute w-28 h-28 rounded-full bg-sky-500/40 blur-2xl transition-all duration-300';
+        else orbGlow.className = 'absolute w-32 h-32 rounded-full bg-emerald-500/50 blur-2xl transition-all duration-300';
+
+        const isWin = (drawnColor === selectedColor);
+        let winAmount = 0;
+
+        if (isWin) {
+          const multiplier = PAYOUTS[drawnColor];
+          winAmount = currentWager * multiplier;
+          bank += winAmount;
+
+          if (drawnColor === 'green') {
+            sfx.jackpot();
+            confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
+            statusEl.innerHTML = `🌟 <span class="text-emerald-300 font-extrabold">RARE GREEN JACKPOT! +${winAmount} Stones!</span>`;
+          } else {
+            sfx.win();
+            statusEl.innerHTML = `🎉 <span class="text-emerald-300 font-bold">MATCH! Drawn ${drawnColor.toUpperCase()}! +${winAmount} Stones!</span>`;
+          }
+        } else {
+          sfx.loss();
+          statusEl.innerHTML = `❌ <span class="text-rose-400 font-semibold">Miss! Bag gave ${drawnColor.toUpperCase()}. Lost ${currentWager} stone(s).</span>`;
+        }
+
+        logDrawHistory(currentDrawIndex, selectedColor, drawnColor, currentWager, isWin, winAmount);
+        updateDashboardUI();
+        isDrawing = false;
+
+        // End round condition (bankrupt or 10 plays reached)
+        if (currentDrawIndex >= MAX_DRAWS || bank <= 0) {
+          setTimeout(() => {
+            const endedOnGreenLoss = (bank <= 0 && lastBetColor === 'green' && !isWin);
+            showRoundEndModal(bank <= 0, endedOnGreenLoss);
+          }, 950);
+        }
+      }, 800);
+    }
+
+    function logDrawHistory(drawNum, chosen, actual, bet, won, winPayout) {
+      const list = document.getElementById('historyLogList');
+      if (drawNum === 1) list.innerHTML = '';
+
+      const item = document.createElement('div');
+      item.className = 'flex items-center justify-between py-1 px-2 rounded-lg bg-black/20 border border-white/5 text-xs';
+      
+      const net = won ? `+${winPayout - bet}` : `-${bet}`;
+      const netClass = won ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+
+      item.innerHTML = `
+        <div class="flex items-center gap-1.5">
+          <span class="font-mono text-[10px] text-gray-400 font-semibold">#${drawNum}</span>
+          <div class="stone stone-${actual} w-3.5 h-3.5"></div>
+          <span class="text-gray-200 capitalize text-[11px] font-medium">${actual}</span>
+          <span class="text-[10px] text-gray-500 font-mono">(Bet ${chosen.slice(0,3)})</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[11px] ${netClass}">${net}</span>
+          <span class="text-[10px] text-purple-300 font-mono">Purse: ${bank}</span>
+        </div>
+      `;
+      list.prepend(item);
+    }
+
+    function showRoundEndModal(isBankrupt = false, endedOnGreenLoss = false) {
+      const scoreData = calculateMysticScore(currentDrawIndex, bank, roundStartBank, endedOnGreenLoss);
+      
+      // Save to lifetime history
+      lifetimeRounds.push(scoreData.totalScore);
+      try {
+        localStorage.setItem('stone_bag_mystic_history', JSON.stringify(lifetimeRounds.slice(-50)));
+      } catch(e) {}
+
+      const modal = document.getElementById('roundEndModal');
+      const title = document.getElementById('roundEndTitle');
+      const subtitle = document.getElementById('roundEndSubtitle');
+      const emoji = document.getElementById('roundEndEmoji');
+      const startBankEl = document.getElementById('summaryStartBank');
+      const finalBankEl = document.getElementById('summaryFinalBank');
+      const netProfitEl = document.getElementById('summaryNetProfit');
+      const adviceEl = document.getElementById('roundEndAdvice');
+      const continueBtn = document.getElementById('btnContinueNextRound');
+
+      // Fill Mystic Breakdown
+      document.getElementById('modalMysticScore').innerText = scoreData.totalScore;
+      const ratingTitle = getMysticRatingTitle(scoreData.totalScore);
+      document.getElementById('modalMysticRating').innerText = ratingTitle;
+
+      document.getElementById('modalPlaysCount').innerText = currentDrawIndex;
+      const survEl = document.getElementById('modalSurvivalScore');
+      survEl.innerText = (scoreData.survivalScore >= 0 ? `+${scoreData.survivalScore}` : `${scoreData.survivalScore}`);
+      survEl.className = `font-mono font-bold ${scoreData.survivalScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      const greenRow = document.getElementById('modalGreenPenaltyRow');
+      if (endedOnGreenLoss) {
+        greenRow.classList.remove('hidden');
+        document.getElementById('modalGreenPenaltyScore').innerText = scoreData.greedPenalty;
+        sfx.penalty();
+      } else {
+        greenRow.classList.add('hidden');
+      }
+
+      document.getElementById('modalStonesCount').innerText = bank;
+      const wealthEl = document.getElementById('modalWealthScore');
+      wealthEl.innerText = `+${scoreData.wealthScore}`;
+      wealthEl.className = 'font-mono font-bold text-purple-300';
+
+      document.getElementById('modalLifetimeAvg').innerText = getLifetimeAverage();
+
+      startBankEl.innerText = roundStartBank;
+      finalBankEl.innerText = bank;
+      const net = bank - roundStartBank;
+      netProfitEl.innerText = (net >= 0 ? `+${net}` : `${net}`);
+      netProfitEl.className = `text-sm font-black ${net >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      if (isBankrupt) {
+        emoji.innerText = '💀';
+        title.innerText = 'Purse Empty!';
+        subtitle.innerText = `Survived only ${currentDrawIndex} of 10 plays`;
+        
+        if (currentDrawIndex < 7) {
+          adviceEl.innerHTML = `<span class="text-rose-300 font-semibold">Severe Survival Penalty Applied!</span> Reaching play 7 is critical to maintain your Mystic standing.`;
+        } else {
+          adviceEl.innerText = 'You reached the safe play zone, but depleted your purple stones.';
+        }
+        continueBtn.classList.add('hidden');
+      } else {
+        emoji.innerText = currentDrawIndex === 10 ? '👑' : '⚖️';
+        title.innerText = '10 Draws Completed!';
+        subtitle.innerText = `Full Trial Round ${roundNumber} Survived`;
+        adviceEl.innerHTML = `<span class="text-amber-300 font-semibold">10-Play Jackpot Milestone Reached!</span> Your mastery is recorded in the Mystic archives.`;
+        continueBtn.classList.remove('hidden');
+      }
+
+      updateMysticGaugeUI();
+      modal.classList.remove('hidden');
+    }
+
+    function startNextRound(resetBankToDefault = false) {
+      document.getElementById('roundEndModal').classList.add('hidden');
+      
+      if (resetBankToDefault || bank <= 0) {
+        bank = STARTING_BANK_DEFAULT;
+        roundNumber = 1;
+      } else {
+        roundNumber++;
+      }
+
+      roundStartBank = bank;
+      currentDrawIndex = 0;
+      drawnStones = [];
+      selectedColor = null;
+      lastBetColor = null;
+      currentWager = 1;
+      
+      ['btnPickOrange', 'btnPickBlue', 'btnPickGreen'].forEach(id => {
+        document.getElementById(id).classList.remove('ring-2', 'ring-white', 'scale-105', 'bg-white/10');
+      });
+      document.getElementById('targetSelectedBadge').innerText = 'Choose a color';
+      document.getElementById('targetSelectedBadge').className = 'text-[11px] font-semibold text-purple-300';
+      document.getElementById('revealedStoneContainer').classList.add('hidden');
+      document.getElementById('actionStatus').innerText = 'Select color, set wager, and draw. Reach 7+ plays for high Mystic rating!';
+      document.getElementById('orbGlow').className = 'absolute w-24 h-24 rounded-full bg-purple-600/30 blur-xl transition-all duration-500';
+
+      document.getElementById('historyLogList').innerHTML = `<div class="text-[11px] text-gray-500 text-center py-2 italic">Round ${roundNumber} started. Reach play 7 to avoid survival penalties!</div>`;
+
+      initializeBag();
+      updateDashboardUI();
+    }
+
+    let restartConfirming = false;
+    function promptRestartRound() {
+      if (isDrawing) return;
+      const status = document.getElementById('actionStatus');
+      if (!restartConfirming) {
+        restartConfirming = true;
+        status.innerHTML = '<span class="text-amber-300 font-bold">Tap again to confirm restarting this round!</span>';
+        setTimeout(() => {
+          restartConfirming = false;
+          status.innerText = 'Select color, set wager, and draw. Reach 7+ plays for high Mystic rating!';
+        }, 3000);
+      } else {
+        restartConfirming = false;
+        startNextRound(false);
+      }
+    }
+
+    function toggleRulesModal(show) {
+      sfx.click();
+      const modal = document.getElementById('rulesModal');
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeBag();
+      updateDashboardUI();
+
+      document.getElementById('rulesBtn').addEventListener('click', () => toggleRulesModal(true));
+      
+      const soundBtn = document.getElementById('soundToggle');
+      const soundIcon = document.getElementById('soundIcon');
+      soundBtn.addEventListener('click', () => {
+        sfx.enabled = !sfx.enabled;
+        soundIcon.innerText = sfx.enabled ? '🔊' : '🔇';
+        if (sfx.enabled) sfx.click();
+      });
+
+      selectColor('orange');
+    });
+  </script>
+</body>
+</html>

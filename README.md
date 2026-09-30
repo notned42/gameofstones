@@ -1,2 +1,2 @@
-# gameofstones
-10 turns. 15 stones. Thousands of possibilities.
+# sevenstones
+7 stones. 10 turns. Thousands of possibilities.

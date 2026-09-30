@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Seven Stones</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Cinzel for fantasy tavern feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --font-display: 'Cinzel', serif;
+      --font-sans: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-sans);
+      background-color: #080b12;
+      color: #e2e8f0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .font-cinzel {
+      font-family: var(--font-display);
+    }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(168, 85, 247, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(168, 85, 247, 0.8);
+    }
+
+    @keyframes bagRattle {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      15% { transform: rotate(-8deg) scale(1.04) translateY(-4px); }
+      30% { transform: rotate(7deg) scale(0.97); }
+      45% { transform: rotate(-6deg) scale(1.03) translateY(-3px); }
+      60% { transform: rotate(5deg) scale(0.98); }
+      75% { transform: rotate(-4deg) scale(1.02); }
+      90% { transform: rotate(2deg) scale(0.99); }
+    }
+    .animate-bag-shake {
+      animation: bagRattle 0.85s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    @keyframes stoneEmerge {
+      0% {
+        transform: translateY(30px) scale(0.1) rotate(0deg);
+        opacity: 0;
+        filter: blur(8px);
+      }
+      40% {
+        transform: translateY(-50px) scale(1.25) rotate(180deg);
+        opacity: 1;
+        filter: blur(0px);
+      }
+      70% {
+        transform: translateY(-40px) scale(1.1) rotate(360deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-40px) scale(1) rotate(360deg);
+        opacity: 1;
+      }
+    }
+    .animate-stone-draw {
+      animation: stoneEmerge 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.4)); }
+      50% { filter: drop-shadow(0 0 24px rgba(168, 85, 247, 0.85)); }
+    }
+    .gem-glow-purple {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    /* Glassmorphism styling */
+    .glass-panel {
+      background: rgba(18, 24, 38, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-panel-subtle {
+      background: rgba(15, 20, 32, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Achievement badge silhouette filter */
+    .badge-locked {
+      filter: grayscale(100%) brightness(28%) contrast(120%);
+      opacity: 0.45;
+    }
+    .badge-unlocked {
+      filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4));
+      opacity: 1;
+      transform: scale(1);
+      transition: all 0.3s ease;
+    }
+    .badge-unlocked:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.7));
+    }
+  </style>
+</head>
+<body class="min-h-screen max-h-screen overflow-hidden flex flex-col justify-between text-slate-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0B0F19] to-[#05070D]">
+
+  <header class="h-14 border-b border-slate-800/80 px-4 md:px-6 flex items-center justify-between glass-panel z-20 shrink-0">
+    <div class="flex items-center space-x-3">
+      <!-- Gem Icon -->
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-700 via-purple-500 to-indigo-400 flex items-center justify-center shadow-lg shadow-purple-900/50">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="12,2 22,8.5 18,22 6,22 2,8.5" opacity="0.9" />
+          <polygon points="12,2 6,8.5 12,22 18,8.5" fill="#f5d0fe" />
+          <polygon points="6,8.5 12,22 6,22" fill="#a855f7" />
+          <polygon points="18,8.5 12,22 18,22" fill="#7e22ce" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="font-cinzel text-lg md:text-xl font-bold tracking-wider bg-gradient-to-r from-purple-200 via-amber-200 to-purple-300 bg-clip-text text-transparent">
+          SEVEN STONES
+        </h1>
+        <p class="text-[10px] text-slate-400 hidden sm:block -mt-1 tracking-widest uppercase font-semibold">Tavern of Fortunes</p>
+      </div>
+    </div>
+
+    <!-- Header Stats & Actions -->
+    <div class="flex items-center space-x-2 md:space-x-4">
+      <!-- Lifetime Score Display -->
+      <div class="glass-panel-subtle px-3 py-1 rounded-full flex items-center space-x-2 border border-purple-500/20 shadow-inner">
+        <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Lifetime Score:</span>
+        <span id="headerLifetimeScore" class="font-bold text-amber-400 font-mono text-sm">0.00</span>
+      </div>
+
+      <!-- Achievements Drawer Button -->
+      <button id="btnOpenAchievements" class="relative px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition flex items-center space-x-1.5 text-xs font-medium">
+        <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="6" />
+          <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+        </svg>
+        <span class="hidden sm:inline">Trophies</span>
+        <span id="badgeUnlockedCount" class="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full font-mono border border-amber-500/40">0/24</span>
+      </button>
+
+      <!-- Rules Guide Button -->
+      <button id="btnOpenRules" class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition" title="Game Rules">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      </button>
+
+      <!-- Sound Toggle -->
+      <button id="btnToggleSound" class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition" title="Toggle Sound">
+        <svg id="soundIconOn" class="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+        </svg>
+        <svg id="soundIconOff" class="w-4 h-4 text-slate-500 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="1" y1="1" x2="23" y2="23" />
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden items-stretch">
+    
+    <!-- LEFT COLUMN: The Bag, Drawing Chamber & Live Odds (5 cols on lg) -->
+    <section class="lg:col-span-5 flex flex-col justify-between glass-panel rounded-2xl p-3 sm:p-4 border border-slate-700/60 shadow-2xl relative overflow-hidden">
+      <!-- Background subtle glow -->
+      <div class="absolute -top-16 -left-16 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <!-- Top info bar of Left Card -->
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+        <div class="flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="font-cinzel text-xs font-bold uppercase tracking-wider text-slate-300">The Velvet Bag</span>
+        </div>
+        <div class="flex items-center space-x-1.5 text-xs text-slate-400">
+          <span>Stones Remaining:</span>
+          <span id="bagCountTotal" class="font-mono font-bold text-amber-400 bg-slate-800/90 px-2 py-0.5 rounded border border-slate-700">15 / 15</span>
+        </div>
+      </div>
+
+      <!-- Center Bag Visual & Animated Draw Arena -->
+      <div class="flex-1 relative flex flex-col items-center justify-center my-2 min-h-[170px] sm:min-h-[210px]">
+        
+        <!-- Animated Draw Reveal Centerpiece -->
+        <div id="drawnStoneContainer" class="absolute z-20 pointer-events-none flex flex-col items-center justify-center transition-all duration-300 opacity-0 scale-50">
+          <div id="drawnStoneOrb" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-2xl relative">
+            <!-- Inner gloss highlight -->
+            <div class="absolute inset-1 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-white/60 pointer-events-none"></div>
+            <span id="drawnStoneLabel" class="font-cinzel font-black text-sm sm:text-base tracking-wider drop-shadow-md text-white text-center uppercase">ORANGE</span>
+          </div>
+          <div id="drawnStoneResultBadge" class="mt-2 text-xs font-bold px-3 py-1 rounded-full shadow-lg border">
+            WIN +14 STONES!
+          </div>
+        </div>
+
+        <!-- Drawstring Leather Bag SVG -->
+        <div id="bagGraphicWrapper" class="relative cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95 group">
+          <svg class="w-36 h-36 sm:w-44 sm:h-44 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Drawstring cords dangling -->
+            <path d="M 90 60 Q 60 70 50 115 Q 48 125 55 125 Q 60 120 62 105" stroke="#D97706" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.85"/>
+            <circle cx="55" cy="125" r="4.5" fill="#F59E0B" />
+            <path d="M 110 60 Q 140 70 150 115 Q 152 125 145 125 Q 140 120 138 105" stroke="#D97706" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.85"/>
+            <circle cx="145" cy="125" r="4.5" fill="#F59E0B" />
+
+            <!-- Pouch Main Body with Velvet/Leather Shading -->
+            <path d="M 68 62 C 35 78 28 140 45 170 C 60 195 140 195 155 170 C 172 140 165 78 132 62 C 122 58 78 58 68 62 Z" fill="url(#bagGradient)" stroke="#4A1D96" stroke-width="3" />
+            
+            <!-- Shading overlay -->
+            <path d="M 68 62 C 35 78 28 140 45 170 C 60 195 140 195 155 170 C 172 140 165 78 132 62 C 122 58 78 58 68 62 Z" fill="url(#bagShadow)" opacity="0.4" />
+
+            <!-- Embossed Mystical Star on Bag -->
+            <path d="M 100 112 L 105 128 L 122 128 L 108 138 L 113 154 L 100 144 L 87 154 L 92 138 L 78 128 L 95 128 Z" fill="#F59E0B" opacity="0.75" />
+
+            <!-- Gathered folds / Ruffles at Neck -->
+            <path d="M 66 60 Q 100 70 134 60 C 145 42 140 32 130 30 C 118 36 100 34 88 32 C 72 30 60 38 66 60 Z" fill="#581C87" stroke="#3B0764" stroke-width="2.5" />
+            
+            <!-- Leather Tie Cord Wrapped Around Neck -->
+            <path d="M 64 58 Q 100 68 136 58" stroke="#D97706" stroke-width="5" stroke-linecap="round" />
+            <circle cx="100" cy="63" r="5" fill="#FBBF24" />
+
+            <!-- Gradients Definition -->
+            <defs>
+              <linearGradient id="bagGradient" x1="40" y1="50" x2="160" y2="190" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#7E22CE"/>
+                <stop offset="45%" stop-color="#581C87"/>
+                <stop offset="100%" stop-color="#2E1065"/>
+              </linearGradient>
+              <radialGradient id="bagShadow" cx="50%" cy="50%" r="50%">
+                <stop offset="40%" stop-color="#000" stop-opacity="0"/>
+                <stop offset="100%" stop-color="#000" stop-opacity="0.8"/>
+              </radialGradient>
+            </defs>
+          </svg>
+          <div class="text-center mt-1">
+            <span class="text-[11px] font-semibold text-purple-300/80 tracking-widest uppercase group-hover:text-purple-200 transition">
+              Drawstone Pouch
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-1.5 shrink-0 pt-2 border-t border-slate-800">
+        <div class="flex justify-between items-center text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+          <span>Stone Composition</span>
+          <span>Odds & EV Factor</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <!-- Orange Stone Indicator -->
+          <div class="glass-panel-subtle p-2 rounded-xl border border-amber-500/20 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 shadow shadow-amber-500/50"></span>
+                <span class="text-xs font-bold text-amber-300">Orange</span>
+              </div>
+              <span id="bagCountOrange" class="text-xs font-mono font-bold text-white bg-amber-950/60 px-1.5 py-0.2 rounded border border-amber-700/50">7</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-[11px]">
+              <span id="oddsPercentOrange" class="text-slate-300 font-mono">46.7%</span>
+              <span id="evFactorOrange" class="font-mono text-slate-400 font-semibold text-[10px]" title="Expected Multiplier = 2 * (O / Total)">EV 0.93</span>
+            </div>
+          </div>
+
+          <!-- Blue Stone Indicator -->
+          <div class="glass-panel-subtle p-2 rounded-xl border border-blue-500/20 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 shadow shadow-blue-500/50"></span>
+                <span class="text-xs font-bold text-blue-300">Blue</span>
+              </div>
+              <span id="bagCountBlue" class="text-xs font-mono font-bold text-white bg-blue-950/60 px-1.5 py-0.2 rounded border border-blue-700/50">7</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-[11px]">
+              <span id="oddsPercentBlue" class="text-slate-300 font-mono">46.7%</span>
+              <span id="evFactorBlue" class="font-mono text-slate-400 font-semibold text-[10px]" title="Expected Multiplier = 2 * (B / Total)">EV 0.93</span>
+            </div>
+          </div>
+
+          <!-- Green Stone Indicator -->
+          <div class="glass-panel-subtle p-2 rounded-xl border border-emerald-500/20 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 shadow shadow-emerald-500/50"></span>
+                <span class="text-xs font-bold text-emerald-300">Green</span>
+              </div>
+              <span id="bagCountGreen" class="text-xs font-mono font-bold text-white bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-700/50">1</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-[11px]">
+              <span id="oddsPercentGreen" class="text-slate-300 font-mono">6.7%</span>
+              <span id="evFactorGreen" class="font-mono text-slate-400 font-semibold text-[10px]" title="Expected Multiplier = 15 * (G / Total)">EV 1.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: Round Status, Color Selection, Bidding & Casting (7 cols on lg) -->
+    <section class="lg:col-span-7 flex flex-col justify-between glass-panel rounded-2xl p-3 sm:p-4 border border-slate-700/60 shadow-2xl relative">
+      
+      <!-- Top Row: Bank (Purple Stones) & Round/Turn Counters -->
+      <div class="grid grid-cols-3 gap-2 sm:gap-3 shrink-0">
+        <!-- Purple Stones Bank Card -->
+        <div class="glass-panel-subtle p-2.5 sm:p-3 rounded-xl border border-purple-500/40 relative overflow-hidden flex items-center space-x-3">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-900/60 border border-purple-400/30 flex items-center justify-center gem-glow-purple shrink-0">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-purple-300" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12,2 22,8.5 18,22 6,22 2,8.5" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-purple-300">Purple Stones</div>
+            <div class="flex items-baseline space-x-1">
+              <span id="displayBankStones" class="text-xl sm:text-2xl font-black font-mono text-white tracking-tight">7</span>
+              <span class="text-xs text-purple-400/80 font-medium">possessed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Round Indicator -->
+        <div class="glass-panel-subtle p-2.5 sm:p-3 rounded-xl border border-slate-700 flex flex-col justify-center">
+          <div class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Current Round</div>
+          <div class="flex items-baseline space-x-1.5 mt-0.5">
+            <span id="displayRoundNumber" class="text-lg sm:text-xl font-bold font-mono text-amber-300">#1</span>
+            <span id="displayMaxStreak" class="text-[10px] text-slate-400">Streak: <strong id="streakCountText" class="text-amber-400">1 (S=1)</strong></span>
+          </div>
+        </div>
+
+        <!-- Turn Tracker (Max 10) -->
+        <div class="glass-panel-subtle p-2.5 sm:p-3 rounded-xl border border-slate-700 flex flex-col justify-center">
+          <div class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">Round Progress</div>
+          <div class="flex items-baseline justify-between mt-0.5">
+            <span class="text-xs font-bold text-slate-300">Turn <span id="displayCurrentTurn" class="text-purple-400 text-base font-mono">1</span>/10</span>
+            <span id="turnsRemainingTag" class="text-[10px] font-mono text-slate-500">10 left</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div id="turnProgressBar" class="h-full bg-gradient-to-r from-purple-500 to-amber-400 transition-all duration-300" style="width: 10%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="my-2 sm:my-3">
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+          1. Select Stone Target Color
+        </label>
+        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+          <!-- Option Orange -->
+          <button type="button" data-color="orange" class="btn-color-pick group relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-between bg-amber-950/20 border-amber-500 shadow-lg shadow-amber-950/40">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center shadow-md shadow-amber-500/50 mb-1">
+              <span class="text-white text-xs font-black">2x</span>
+            </div>
+            <div class="text-center">
+              <div class="font-cinzel text-xs sm:text-sm font-bold text-amber-300">ORANGE</div>
+              <div class="text-[10px] text-amber-400/80 font-medium">Payout 2x Bid</div>
+            </div>
+            <div class="check-icon absolute top-2 right-2 text-amber-400">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            </div>
+          </button>
+
+          <!-- Option Blue -->
+          <button type="button" data-color="blue" class="btn-color-pick group relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-between bg-blue-950/10 border-slate-700 hover:border-blue-500/50">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center shadow-md shadow-blue-500/50 mb-1">
+              <span class="text-white text-xs font-black">2x</span>
+            </div>
+            <div class="text-center">
+              <div class="font-cinzel text-xs sm:text-sm font-bold text-blue-300">BLUE</div>
+              <div class="text-[10px] text-blue-400/80 font-medium">Payout 2x Bid</div>
+            </div>
+            <div class="check-icon absolute top-2 right-2 text-blue-400 hidden">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            </div>
+          </button>
+
+          <!-- Option Green -->
+          <button type="button" data-color="green" class="btn-color-pick group relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-between bg-emerald-950/10 border-slate-700 hover:border-emerald-500/50">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center shadow-md shadow-emerald-500/50 mb-1">
+              <span class="text-white text-xs font-black">15x</span>
+            </div>
+            <div class="text-center">
+              <div class="font-cinzel text-xs sm:text-sm font-bold text-emerald-300">GREEN</div>
+              <div class="text-[10px] text-emerald-400/80 font-medium">Payout 15x Bid</div>
+            </div>
+            <div class="check-icon absolute top-2 right-2 text-emerald-400 hidden">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="glass-panel-subtle p-2.5 sm:p-3 rounded-xl border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            2. Choose Bid Amount (Purple Stones)
+          </label>
+          <div class="text-xs">
+            <span class="text-slate-400">Potential Return:</span>
+            <span id="potentialPayoutText" class="font-mono font-bold text-emerald-400 ml-1">+2 Stones (2x)</span>
+          </div>
+        </div>
+
+        <!-- Bid Stepper & Quick Action Chips -->
+        <div class="flex items-center space-x-2">
+          <!-- Stepper minus -->
+          <button id="btnBidMinus" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 font-bold border border-slate-700 transition flex items-center justify-center text-base">
+            -
+          </button>
+          
+          <!-- Stepper input -->
+          <div class="flex-1 relative">
+            <input type="number" id="inputBidAmount" min="1" max="7" value="1" class="w-full text-center py-1.5 px-3 bg-slate-900 border border-purple-500/40 focus:border-purple-400 focus:outline-none rounded-lg text-lg sm:text-xl font-mono font-black text-amber-300">
+          </div>
+
+          <!-- Stepper plus -->
+          <button id="btnBidPlus" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 font-bold border border-slate-700 transition flex items-center justify-center text-base">
+            +
+          </button>
+        </div>
+
+        <!-- Quick selection chips -->
+        <div class="grid grid-cols-5 gap-1.5 pt-1">
+          <button type="button" data-bid-type="min" class="btn-quick-bid py-1 text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-slate-300">
+            Min (1)
+          </button>
+          <button type="button" data-bid-type="add1" class="btn-quick-bid py-1 text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-slate-300">
+            +1
+          </button>
+          <button type="button" data-bid-type="add5" class="btn-quick-bid py-1 text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-slate-300">
+            +5
+          </button>
+          <button type="button" data-bid-type="half" class="btn-quick-bid py-1 text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-slate-300">
+            Half (50%)
+          </button>
+          <button type="button" data-bid-type="max" class="btn-quick-bid py-1 text-[11px] font-bold bg-purple-900/60 hover:bg-purple-800/80 rounded border border-purple-500/50 text-purple-200">
+            ALL IN
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-2.5">
+        <button id="btnCastStone" class="w-full py-3 sm:py-3.5 px-4 rounded-xl font-cinzel font-bold text-sm sm:text-base tracking-wider text-white shadow-xl transition-all duration-200 bg-gradient-to-r from-amber-600 via-purple-600 to-indigo-600 hover:from-amber-500 hover:via-purple-500 hover:to-indigo-500 active:scale-[0.98] border border-white/20 flex items-center justify-center space-x-2">
+          <svg class="w-5 h-5 text-amber-300 animate-spin hidden" id="castSpinner" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+          <span id="castBtnText">CAST YOUR BID & DRAW STONE</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="h-16 border-t border-slate-800/80 px-3 sm:px-6 glass-panel flex items-center justify-between shrink-0 z-10">
+    <div class="flex items-center space-x-2 mr-3 shrink-0">
+      <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Round Turns:</span>
+    </div>
+    
+    <!-- Turn 1..10 Pills Strip -->
+    <div class="flex-1 flex items-center justify-between gap-1 max-w-4xl mx-auto overflow-x-auto py-1">
+      <!-- 10 Slots will be dynamically populated/updated -->
+      <div id="turnHistorySlots" class="flex w-full items-center justify-between gap-1">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Active Streak Badge -->
+    <div class="ml-3 hidden sm:flex items-center space-x-1.5 shrink-0 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700">
+      <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Color Streak:</span>
+      <span id="currentStreakBadge" class="text-xs font-mono font-bold text-amber-400">0</span>
+    </div>
+  </footer>
+
+  <div id="modalAchievements" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-6 transition-all duration-300">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="6" />
+              <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-cinzel text-lg font-bold text-white">Achievements & Trophies</h2>
+            <p class="text-xs text-slate-400">Unlock mystical badges to permanently augment your Lifetime Score</p>
+          </div>
+        </div>
+        <button id="btnCloseAchievements" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Achievements Grid Content -->
+      <div id="achievementsGrid" class="p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 flex-1 bg-slate-900/60">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
+        <span>Locked achievements conceal their name, but display their requirement clue.</span>
+        <button id="btnCloseAchievementsFooter" class="px-4 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-semibold transition">
+          Back to Table
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalRoundOver" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-6 transition-all duration-300">
+    <div class="bg-slate-900 border border-purple-500/40 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-800 text-center bg-gradient-to-b from-purple-950/40 to-transparent">
+        <h3 id="roundOverHeading" class="font-cinzel text-xl font-bold text-amber-300 tracking-wider">Round Complete</h3>
+        <p id="roundOverSubheading" class="text-xs text-slate-400 mt-1">Calculating mystical round score and lifetime average...</p>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Formula Display Card -->
+        <div class="glass-panel-subtle p-3 rounded-xl border border-slate-700/80 font-mono text-[11px] space-y-2">
+          <div class="text-slate-400 font-sans font-semibold text-xs text-center border-b border-slate-800 pb-1.5">
+            Round Scoring Formula:
+          </div>
+          <div class="text-center text-purple-300 py-1 bg-slate-950/50 rounded font-bold">
+            Score = ((X² · P) - (X² · P · 0.5·G) + 7·T + 7·F) · (S^(3/7))
+          </div>
+          
+          <!-- Variable breakdown items -->
+          <div class="grid grid-cols-2 gap-2 pt-1 text-slate-300 text-[10px]">
+            <div>• Turns Taken (T): <span id="summaryT" class="text-amber-400 font-bold">10</span></div>
+            <div>• Proportion (X = T/10): <span id="summaryX" class="text-amber-400 font-bold">1.0</span></div>
+            <div>• Stones Possessed (P): <span id="summaryP" class="text-purple-400 font-bold">14</span></div>
+            <div>• Lost on Green (G): <span id="summaryG" class="text-emerald-400 font-bold">0</span></div>
+            <div>• Finished 10 Turns (F): <span id="summaryF" class="text-blue-400 font-bold">1</span></div>
+            <div>• Streak Multiplier (S): <span id="summaryS" class="text-amber-400 font-bold">1</span></div>
+          </div>
+          <div class="text-[9px] text-slate-400 text-center italic bg-slate-950/70 rounded py-1 px-2 border border-slate-800">
+            Rule: S multiplier is 1 until you reach a streak of &ge; 3 matching color wins (then S = streak).
+          </div>
+        </div>
+
+        <!-- Scores Calculated Display -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass-panel-subtle p-3 rounded-xl border border-purple-500/30 text-center">
+            <div class="text-[10px] uppercase font-bold text-purple-300">Round Score</div>
+            <div id="summaryRoundScore" class="text-2xl font-black font-mono text-purple-200 mt-1">0.00</div>
+          </div>
+          <div class="glass-panel-subtle p-3 rounded-xl border border-amber-500/30 text-center">
+            <div class="text-[10px] uppercase font-bold text-amber-300">New Lifetime Average</div>
+            <div id="summaryLifetimeScore" class="text-2xl font-black font-mono text-amber-300 mt-1">0.00</div>
+          </div>
+        </div>
+
+        <!-- Next Round Notes / Bonuses -->
+        <div id="summaryBonusNotice" class="text-xs text-center text-emerald-400 font-medium bg-emerald-950/30 border border-emerald-500/30 p-2 rounded-lg hidden">
+          <!-- Populated if bonuses apply to next round -->
+        </div>
+
+        <button id="btnStartNextRound" class="w-full py-3 rounded-xl font-cinzel font-bold text-sm tracking-wider text-white bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 border border-purple-400/40 shadow-lg shadow-purple-900/50 transition">
+          COMMENCE NEXT ROUND
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalFaustian" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-slate-900 to-purple-950 border-2 border-amber-500/60 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden p-6 text-center space-y-4">
+      <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center">
+        <svg class="w-9 h-9 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="text-amber-400 font-mono text-xs uppercase tracking-widest font-bold">A Fate-Altering Crossroads</span>
+        <h2 class="font-cinzel text-2xl font-bold text-white mt-1">WOULD YOU RATHER?</h2>
+        <p class="text-xs text-slate-300 mt-2">
+          You stand on the precipice of winning over <strong class="text-purple-300">100 Purple Stones</strong> in a single cast. An enigmatic shadow whispers two paths:
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 text-left">
+        <!-- Option A: Faustian Bargain -->
+        <button id="btnFaustianOptionA" class="p-3.5 rounded-xl border border-red-500/40 bg-red-950/20 hover:bg-red-950/40 transition group">
+          <div class="flex items-center justify-between">
+            <span class="font-cinzel font-bold text-sm text-red-300">Option A: The Sure Thing</span>
+            <span class="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded font-mono border border-red-500/30">+17 Lifetime Pts</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1">
+            "Have an absolute guarantee to hit this bid." (Take the guaranteed hit... or will the devil collect his due?)
+          </p>
+        </button>
+
+        <!-- Option B: Sacred Cow -->
+        <button id="btnFaustianOptionB" class="p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-950/40 transition group">
+          <div class="flex items-center justify-between">
+            <span class="font-cinzel font-bold text-sm text-emerald-300">Option B: Sacred Altruism</span>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono border border-emerald-500/30">1.2x Multiplier</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1">
+            "Donate all of your current purple stones to a struggling village in Mozambique." Forfeit the round now; start next round with 14 purple stones!
+          </p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalRules" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <h3 class="font-cinzel text-lg font-bold text-amber-300">Seven Stones — Rules of the Game</h3>
+        <button id="btnCloseRules" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed">
+        <section>
+          <h4 class="font-cinzel font-bold text-amber-400 text-sm mb-1">1. The Bag & The Stones</h4>
+          <p>The velvet bag starts each round filled with exactly 15 stones: <strong>7 Orange</strong>, <strong>7 Blue</strong>, and <strong>1 Green</strong>. Stones are drawn randomly without replacement during the round (15 &rarr; 14 &rarr; 13...). When a new round starts, the bag resets to 15 stones.</p>
+        </section>
+        <section>
+          <h4 class="font-cinzel font-bold text-amber-400 text-sm mb-1">2. Turns & Bidding</h4>
+          <p>You begin each round with <strong>7 Purple Stones</strong> (unless an achievement bonus grants more). Each round lasts a maximum of <strong>10 turns</strong>. Each turn, bid at least 1 stone on Orange (2x payout), Blue (2x payout), or Green (15x payout). Wrong guesses lose the bid.</p>
+        </section>
+        <section>
+          <h4 class="font-cinzel font-bold text-amber-400 text-sm mb-1">3. Lifetime Scoring Formula</h4>
+          <p class="font-mono bg-slate-950 p-2 rounded text-purple-300">Score = ((X² · P) - (X² · P · 0.5·G) + 7·T + 7·F) · (S^(3/7))</p>
+          <p class="mt-1">Where X = turns / 10, P = final purple stones, G = 1 if you busted on a green bid, T = turns survived, F = 1 if you finished all 10 turns, and S = your streak multiplier. <strong>Multiplier Rule:</strong> S equals 1 until you achieve a streak of at least 3 correct consecutive same-round guesses for the same color (if streak &ge; 3, S = streak; otherwise S = 1).</p>
+        </section>
+        <section>
+          <h4 class="font-cinzel font-bold text-amber-400 text-sm mb-1">4. Achievements & Persistence</h4>
+          <p>24 unique trophies exist. Achievement bonuses (flat points & multipliers) are applied immediately to your persistent lifetime score, saved across browser sessions!</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastAchievement" class="fixed top-5 right-5 z-50 transform translate-y-[-150%] transition-transform duration-500 ease-out max-w-sm w-full pointer-events-none">
+    <div class="glass-panel p-3.5 rounded-2xl border-2 border-amber-400/80 shadow-2xl flex items-center space-x-3 bg-slate-950/90 pointer-events-auto">
+      <div id="toastBadgeIcon" class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center shrink-0">
+        <!-- Injected badge SVG -->
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Trophy Unlocked!</span>
+          <span id="toastBonusTag" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">+15 pts</span>
+        </div>
+        <h4 id="toastTitle" class="font-cinzel text-sm font-bold text-white truncate">Tabula Rasa</h4>
+        <p id="toastDesc" class="text-[11px] text-slate-300 truncate">Play your first round!</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      initContext() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playClick() {
+        if (!this.enabled) return;
+        this.initContext();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+
+      playBagRattle() {
+        if (!this.enabled) return;
+        this.initContext();
+        if (!this.ctx) return;
+        // White noise rattle
+        const bufferSize = this.ctx.sampleRate * 0.35;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(600, this.ctx.currentTime);
+        filter.frequency.linearRampToValueAtTime(1800, this.ctx.currentTime + 0.35);
+        filter.Q.value = 3;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+      }
+
+      playStoneClack() {
+        if (!this.enabled) return;
+        this.initContext();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1100, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      }
+
+      playWinFanfare() {
+        if (!this.enabled) return;
+        this.initContext();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          const startTime = this.ctx.currentTime + (idx * 0.07);
+          gain.gain.setValueAtTime(0.18, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.3);
+        });
+      }
+
+      playLossBuzz() {
+        if (!this.enabled) return;
+        this.initContext();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(90, this.ctx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.16, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.35);
+      }
+
+      playAchievementFanfare() {
+        if (!this.enabled) return;
+        this.initContext();
+        if (!this.ctx) return;
+        const chords = [
+          [587.33, 880.00], // D5, A5
+          [659.25, 987.77], // E5, B5
+          [783.99, 1174.66],// G5, D6
+          [1046.50, 1567.98]// C6, G6
+        ];
+        chords.forEach((chord, i) => {
+          chord.forEach(freq => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            const startTime = this.ctx.currentTime + (i * 0.09);
+            gain.gain.setValueAtTime(0.12, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.45);
+          });
+        });
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    const ACHIEVEMENTS_DATA = {
+      tabula_rasa: {
+        id: 'tabula_rasa',
+        name: 'Tabula Rasa',
+        req: 'Complete your first round of Seven Stones.',
+        bonusDesc: '+15 to Lifetime Score',
+        type: 'flat',
+        val: 15,
+        icon: `<svg class="w-8 h-8 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>`
+      },
+      loaves_and_fishes: {
+        id: 'loaves_and_fishes',
+        name: 'Loaves and Fishes',
+        req: 'Hit a bid of exactly 1 on Green.',
+        bonusDesc: '+3.2 to Lifetime Score',
+        type: 'flat',
+        val: 3.2,
+        icon: `<svg class="w-8 h-8 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12c4-8 12-4 12 0s-8 8-12 0Z"/><circle cx="15" cy="12" r="1"/></svg>`
+      },
+      non_sequitur: {
+        id: 'non_sequitur',
+        name: 'Non Sequitur',
+        req: 'Bid on Orange or Blue when the other is 2x or more likely to be drawn.',
+        bonusDesc: '+4.2 to Lifetime Score',
+        type: 'flat',
+        val: 4.2,
+        icon: `<svg class="w-8 h-8 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>`
+      },
+      golden_calf: {
+        id: 'golden_calf',
+        name: 'Golden Calf',
+        req: 'Bid on Orange each of your 10 turns for an entire round.',
+        bonusDesc: 'Multiply Lifetime Score by 1.1x',
+        type: 'mult',
+        val: 1.1,
+        icon: `<svg class="w-8 h-8 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>`
+      },
+      achilles_heel: {
+        id: 'achilles_heel',
+        name: "Achilles' Heel",
+        req: 'Lose a round by betting on the exact same color every turn.',
+        bonusDesc: 'Multiply Lifetime Score by 1.2x',
+        type: 'mult',
+        val: 1.2,
+        icon: `<svg class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 19-6-6"/><path d="m14 14-8 8H2v-4l8-8"/><circle cx="18" cy="6" r="3"/></svg>`
+      },
+      pearls_before_swine: {
+        id: 'pearls_before_swine',
+        name: 'Pearls Before Swine',
+        req: 'Lose at least 20 purple stones on a single bid.',
+        bonusDesc: '+1.5 to Lifetime Score',
+        type: 'flat',
+        val: 1.5,
+        icon: `<svg class="w-8 h-8 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="9" r="1"/></svg>`
+      },
+      once_in_a_blue_moon: {
+        id: 'once_in_a_blue_moon',
+        name: 'Once in a Blue Moon',
+        req: 'Bid Blue for the first time in a round after turn 7 and win.',
+        bonusDesc: '+3.1 to Lifetime Score',
+        type: 'flat',
+        val: 3.1,
+        icon: `<svg class="w-8 h-8 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`
+      },
+      crossing_the_rubicon: {
+        id: 'crossing_the_rubicon',
+        name: 'Crossing the Rubicon',
+        req: 'Go all in on a single bid with at least 7 purple stones.',
+        bonusDesc: '+2.0 to Lifetime Score',
+        type: 'flat',
+        val: 2.0,
+        icon: `<svg class="w-8 h-8 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 17 5-5-5-5M6 17l5-5-5-5"/></svg>`
+      },
+      crocodile_tears: {
+        id: 'crocodile_tears',
+        name: 'Crocodile Tears',
+        req: 'Hit Green after bidding on it at least 3 times earlier in the round.',
+        bonusDesc: 'Multiply Lifetime Score by 1.21x',
+        type: 'mult',
+        val: 1.21,
+        icon: `<svg class="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 4 5 10 5 10s5-6 5-10a5 5 0 0 0-5-5Z"/></svg>`
+      },
+      thirty_pieces_of_silver: {
+        id: 'thirty_pieces_of_silver',
+        name: 'Thirty Pieces of Silver',
+        req: 'Lose 30 purple stones in a single bid.',
+        bonusDesc: '+35 Purple Stones instantly for this round!',
+        type: 'special',
+        val: 35,
+        icon: `<svg class="w-8 h-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9h-5v6h5"/></svg>`
+      },
+      all_that_glitters: {
+        id: 'all_that_glitters',
+        name: 'All that Glitters Is Not Gold',
+        req: 'Miss at least 5 bids on Orange in a single round.',
+        bonusDesc: '+7.0 to Lifetime Score',
+        type: 'flat',
+        val: 7.0,
+        icon: `<svg class="w-8 h-8 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`
+      },
+      deus_ex_machina: {
+        id: 'deus_ex_machina',
+        name: 'Deus ex Machina',
+        req: 'First time losing at least 50 purple stones on a bid.',
+        bonusDesc: '+60 Purple Stones granted immediately!',
+        type: 'special',
+        val: 60,
+        icon: `<svg class="w-8 h-8 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`
+      },
+      waterloo: {
+        id: 'waterloo',
+        name: 'Waterloo',
+        req: 'Go all in on Blue... and lose the bid.',
+        bonusDesc: '+4.0 to Lifetime Score',
+        type: 'flat',
+        val: 4.0,
+        icon: `<svg class="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><line x1="9" y1="15" x2="15" y2="9"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
+      },
+      fiddle_while_rome_burns: {
+        id: 'fiddle_while_rome_burns',
+        name: 'Fiddle While Rome Burns',
+        req: 'Bid at least 1 more than prior bid on 4 consecutive losing bids.',
+        bonusDesc: '+7.0 to Lifetime Score',
+        type: 'flat',
+        val: 7.0,
+        icon: `<svg class="w-8 h-8 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`
+      },
+      magnum_opus: {
+        id: 'magnum_opus',
+        name: 'Magnum Opus',
+        req: 'Set a new high round score for the first time in at least 15 rounds.',
+        bonusDesc: '+20 Purple Stones next round',
+        type: 'special',
+        val: 20,
+        icon: `<svg class="w-8 h-8 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>`
+      },
+      fifteen_minutes: {
+        id: 'fifteen_minutes',
+        name: 'Fifteen Minutes of Fame',
+        req: 'Hit any Green bid.',
+        bonusDesc: '+15.0 to Lifetime Score',
+        type: 'flat',
+        val: 15.0,
+        icon: `<svg class="w-8 h-8 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+      },
+      noble_savage: {
+        id: 'noble_savage',
+        name: 'Noble Savage',
+        req: 'Bid against the odds (EV < 1.0) on every turn of a round for at least 8 turns.',
+        bonusDesc: '+3.73 to Lifetime Score',
+        type: 'flat',
+        val: 3.73,
+        icon: `<svg class="w-8 h-8 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`
+      },
+      cassandra_of_troy: {
+        id: 'cassandra_of_troy',
+        name: 'Cassandra of Troy',
+        req: 'Bid on Orange or Blue incorrectly for 9 straight turns in a round.',
+        bonusDesc: 'Multiply Lifetime Score by 1.4x',
+        type: 'mult',
+        val: 1.4,
+        icon: `<svg class="w-8 h-8 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>`
+      },
+      faustian_bargain: {
+        id: 'faustian_bargain',
+        name: 'Faustian Bargain',
+        req: 'Choose the guaranteed win in the "Would You Rather" dilemma.',
+        bonusDesc: '+17.0 to Lifetime Score',
+        type: 'flat',
+        val: 17.0,
+        icon: `<svg class="w-8 h-8 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 12.5"/></svg>`
+      },
+      sacred_cow: {
+        id: 'sacred_cow',
+        name: 'Sacred Cow',
+        req: 'Donate all stones to Mozambique; start next round with 14 stones.',
+        bonusDesc: 'Multiply Lifetime Score by 1.2x',
+        type: 'mult',
+        val: 1.2,
+        icon: `<svg class="w-8 h-8 text-amber-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`
+      },
+      scylla_and_charybdis: {
+        id: 'scylla_and_charybdis',
+        name: 'Scylla and Charybdis',
+        req: 'Be caught in an equal chance split with only 1 purple stone left.',
+        bonusDesc: '+0.5 to Lifetime Score',
+        type: 'flat',
+        val: 0.5,
+        icon: `<svg class="w-8 h-8 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20"/><path d="m5 16 3-4-3-4"/><path d="m19 16-3-4 3-4"/></svg>`
+      },
+      babylon: {
+        id: 'babylon',
+        name: 'Babylon',
+        req: 'Hit 200 purple stones in a single round.',
+        bonusDesc: 'Multiply Lifetime Score by 1.4x',
+        type: 'mult',
+        val: 1.4,
+        icon: `<svg class="w-8 h-8 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 8 8v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10l8-8Z"/></svg>`
+      },
+      babylon_2: {
+        id: 'babylon_2',
+        name: 'Babylon 2.0',
+        req: 'Accumulate 420 total purple stones won across lifetime rounds.',
+        bonusDesc: 'Multiply Lifetime Score by 1.3x',
+        type: 'mult',
+        val: 1.3,
+        icon: `<svg class="w-8 h-8 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+      },
+      holy_grail: {
+        id: 'holy_grail',
+        name: 'Holy Grail',
+        req: 'Correctly guess 10 consecutive bids in a row.',
+        bonusDesc: 'Multiply Lifetime Score by 1.7x',
+        type: 'mult',
+        val: 1.7,
+        icon: `<svg class="w-8 h-8 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v5a6 6 0 0 1-12 0V3z"/><path d="M12 14v5"/><path d="M8 21h8"/></svg>`
+      }
+    };
+
+    const STORAGE_KEY = 'seven_stones_save_state_v2';
+
+    let state = {
+      // Lifetime metrics
+      roundScores: [],
+      lifetimeFlatBonus: 0,
+      lifetimeMultiplier: 1.0,
+      lifetimeStonesWon: 0,
+      previousHighScore: 0,
+      achievements: {}, // id -> true
+      soundEnabled: true,
+
+      // Round & Bag
+      roundNumber: 1,
+      bank: 7,
+      nextRoundBonusStones: 0,
+      turn: 1, // 1 to 10
+      bag: [], // array of 'orange' | 'blue' | 'green'
+      selectedColor: 'orange',
+      currentBid: 1,
+      isDrawing: false,
+
+      // Trackers for Round Scoring & Achievements
+      turnHistory: [], // array of { turn, color, bid, drawn, won, netProfit, ev }
+      longestSameStreakThisRound: 1,
+      currentSameStreakColor: null,
+      currentSameStreakCount: 0,
+      consecutiveGlobalWins: 0, // for Holy Grail
+      consecutiveOrangeOrBlueLosses: 0, // for Cassandra of Troy
+      consecutiveAscendingLosses: 0, // for Fiddle While Rome Burns
+      lastLossBidAmount: 0,
+      roundOrangeBidsCount: 0,
+      roundOrangeMissesCount: 0,
+      roundGreenBidsCount: 0,
+      riggedLossNext: false, // from Faustian Bargain Option A
+      faustianPresented: false,
+      deusExTriggered: false
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.roundScores) state.roundScores = parsed.roundScores;
+          if (typeof parsed.lifetimeFlatBonus === 'number') state.lifetimeFlatBonus = parsed.lifetimeFlatBonus;
+          if (typeof parsed.lifetimeMultiplier === 'number') state.lifetimeMultiplier = parsed.lifetimeMultiplier;
+          if (typeof parsed.lifetimeStonesWon === 'number') state.lifetimeStonesWon = parsed.lifetimeStonesWon;
+          if (typeof parsed.previousHighScore === 'number') state.previousHighScore = parsed.previousHighScore;
+          if (parsed.achievements) state.achievements = parsed.achievements;
+          if (typeof parsed.roundNumber === 'number') state.roundNumber = parsed.roundNumber;
+          if (typeof parsed.soundEnabled === 'boolean') {
+            state.soundEnabled = parsed.soundEnabled;
+            sound.enabled = parsed.soundEnabled;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load state from localStorage:', err);
+      }
+    }
+
+    function saveState() {
+      try {
+        const payload = {
+          roundScores: state.roundScores,
+          lifetimeFlatBonus: state.lifetimeFlatBonus,
+          lifetimeMultiplier: state.lifetimeMultiplier,
+          lifetimeStonesWon: state.lifetimeStonesWon,
+          previousHighScore: state.previousHighScore,
+          achievements: state.achievements,
+          roundNumber: state.roundNumber,
+          soundEnabled: state.soundEnabled
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (err) {
+        console.error('Failed to save state to localStorage:', err);
+      }
+    }
+
+    function getAverageRoundScore() {
+      if (state.roundScores.length === 0) return 0;
+      const sum = state.roundScores.reduce((a, b) => a + b, 0);
+      return sum / state.roundScores.length;
+    }
+
+    function calculateLifetimeScore() {
+      const baseAvg = getAverageRoundScore();
+      const score = (baseAvg + state.lifetimeFlatBonus) * state.lifetimeMultiplier;
+      return Math.max(0, score);
+    }
+
+    function getBagCounts() {
+      let orange = 0, blue = 0, green = 0;
+      for (const stone of state.bag) {
+        if (stone === 'orange') orange++;
+        else if (stone === 'blue') blue++;
+        else if (stone === 'green') green++;
+      }
+      return { orange, blue, green, total: state.bag.length };
+    }
+
+    function resetBag() {
+      state.bag = [
+        'orange', 'orange', 'orange', 'orange', 'orange', 'orange', 'orange',
+        'blue', 'blue', 'blue', 'blue', 'blue', 'blue', 'blue',
+        'green'
+      ];
+    }
+
+    function updateOddsAndBagUI() {
+      const counts = getBagCounts();
+      document.getElementById('bagCountTotal').textContent = `${counts.total} / 15`;
+      document.getElementById('bagCountOrange').textContent = counts.orange;
+      document.getElementById('bagCountBlue').textContent = counts.blue;
+      document.getElementById('bagCountGreen').textContent = counts.green;
+
+      // Probabilities
+      const pOrange = counts.total > 0 ? (counts.orange / counts.total) : 0;
+      const pBlue = counts.total > 0 ? (counts.blue / counts.total) : 0;
+      const pGreen = counts.total > 0 ? (counts.green / counts.total) : 0;
+
+      document.getElementById('oddsPercentOrange').textContent = (pOrange * 100).toFixed(1) + '%';
+      document.getElementById('oddsPercentBlue').textContent = (pBlue * 100).toFixed(1) + '%';
+      document.getElementById('oddsPercentGreen').textContent = (pGreen * 100).toFixed(1) + '%';
+
+      // Expected Multipliers: 2 * p, 2 * p, 15 * p
+      const evOrange = (2 * pOrange).toFixed(2);
+      const evBlue = (2 * pBlue).toFixed(2);
+      const evGreen = (15 * pGreen).toFixed(2);
+
+      document.getElementById('evFactorOrange').textContent = `EV ${evOrange}`;
+      document.getElementById('evFactorBlue').textContent = `EV ${evBlue}`;
+      document.getElementById('evFactorGreen').textContent = `EV ${evGreen}`;
+
+      // Color cards indicators
+      document.getElementById('evFactorOrange').className = `font-mono font-semibold text-[10px] ${evOrange < 1.0 ? 'text-rose-400' : 'text-emerald-400'}`;
+      document.getElementById('evFactorBlue').className = `font-mono font-semibold text-[10px] ${evBlue < 1.0 ? 'text-rose-400' : 'text-emerald-400'}`;
+      document.getElementById('evFactorGreen').className = `font-mono font-semibold text-[10px] ${evGreen < 1.0 ? 'text-rose-400' : 'text-emerald-400'}`;
+    }
+
+    function updateBankAndControlsUI() {
+      // Purple stones readout
+      document.getElementById('displayBankStones').textContent = state.bank;
+      document.getElementById('displayRoundNumber').textContent = `#${state.roundNumber}`;
+      document.getElementById('displayCurrentTurn').textContent = state.turn;
+      const turnsLeft = Math.max(0, 10 - state.turn + 1);
+      document.getElementById('turnsRemainingTag').textContent = `${turnsLeft} left`;
+      
+      const progressPercent = Math.min(100, (state.turn / 10) * 100);
+      document.getElementById('turnProgressBar').style.width = `${progressPercent}%`;
+
+      const streak = state.longestSameStreakThisRound;
+      const effectiveS = streak >= 3 ? streak : 1;
+      document.getElementById('streakCountText').textContent = streak >= 3 
+        ? `${streak} (S=${effectiveS})` 
+        : `${streak} (S=1, 3+ needed)`;
+      document.getElementById('currentStreakBadge').textContent = `${state.currentSameStreakCount} (${state.currentSameStreakColor || '-'})`;
+
+      // Header Lifetime Score
+      document.getElementById('headerLifetimeScore').textContent = calculateLifetimeScore().toFixed(2);
+
+      // Clamp and update Bid input
+      const bidInput = document.getElementById('inputBidAmount');
+      if (state.bank <= 0) {
+        state.currentBid = 0;
+      } else {
+        state.currentBid = Math.min(Math.max(1, state.currentBid), state.bank);
+      }
+      bidInput.value = state.currentBid;
+      bidInput.max = state.bank;
+
+      // Potential payout text
+      const mult = state.selectedColor === 'green' ? 15 : 2;
+      const potentialGain = state.currentBid * mult;
+      document.getElementById('potentialPayoutText').textContent = `+${potentialGain} Stones (${mult}x)`;
+
+      // Color cards selection UI
+      document.querySelectorAll('.btn-color-pick').forEach(btn => {
+        const color = btn.getAttribute('data-color');
+        const check = btn.querySelector('.check-icon');
+        if (color === state.selectedColor) {
+          btn.classList.add('border-purple-400', 'bg-purple-950/40', 'scale-[1.02]');
+          btn.classList.remove('border-slate-700', 'bg-slate-900/40');
+          if (check) check.classList.remove('hidden');
+        } else {
+          btn.classList.remove('border-purple-400', 'bg-purple-950/40', 'scale-[1.02]');
+          btn.classList.add('border-slate-700', 'bg-slate-900/40');
+          if (check) check.classList.add('hidden');
+        }
+      });
+
+      // Cast Button State
+      const castBtn = document.getElementById('btnCastStone');
+      if (state.isDrawing || state.bank <= 0) {
+        castBtn.disabled = true;
+        castBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        castBtn.disabled = false;
+        castBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+
+      // Trophy counter in header
+      const unlockedCount = Object.keys(state.achievements).length;
+      document.getElementById('badgeUnlockedCount').textContent = `${unlockedCount}/24`;
+    }
+
+    function renderTurnHistoryStrip() {
+      const container = document.getElementById('turnHistorySlots');
+      container.innerHTML = '';
+
+      for (let t = 1; t <= 10; t++) {
+        const historyItem = state.turnHistory.find(h => h.turn === t);
+        const slot = document.createElement('div');
+        slot.className = `flex-1 min-w-[28px] h-10 rounded-lg flex flex-col items-center justify-center border text-[10px] font-mono transition-all duration-200`;
+
+        if (historyItem) {
+          // Completed turn
+          if (historyItem.won) {
+            slot.classList.add('bg-emerald-950/40', 'border-emerald-500/60', 'text-emerald-300');
+            slot.innerHTML = `<span class="font-bold uppercase">${historyItem.drawn[0]}</span><span class="text-[9px] text-emerald-400 font-bold">+${historyItem.netProfit}</span>`;
+          } else {
+            slot.classList.add('bg-rose-950/30', 'border-rose-600/50', 'text-rose-300');
+            slot.innerHTML = `<span class="font-bold uppercase">${historyItem.drawn[0]}</span><span class="text-[9px] text-rose-400">-${historyItem.bid}</span>`;
+          }
+        } else if (t === state.turn && state.bank > 0) {
+          // Current active turn
+          slot.classList.add('bg-purple-900/50', 'border-purple-400', 'text-purple-200', 'animate-pulse');
+          slot.innerHTML = `<span class="font-bold">${t}</span><span class="text-[8px] text-purple-300">NOW</span>`;
+        } else {
+          // Future slot
+          slot.classList.add('bg-slate-900/40', 'border-slate-800', 'text-slate-600');
+          slot.innerHTML = `<span>${t}</span><span class="text-[8px]">-</span>`;
+        }
+        container.appendChild(slot);
+      }
+    }
+
+    function renderAchievementsModal() {
+      const grid = document.getElementById('achievementsGrid');
+      grid.innerHTML = '';
+
+      Object.values(ACHIEVEMENTS_DATA).forEach(ach => {
+        const isUnlocked = !!state.achievements[ach.id];
+        const card = document.createElement('div');
+        card.className = `glass-panel-subtle p-3 rounded-xl border flex items-center space-x-3 transition-all duration-200 ${
+          isUnlocked 
+            ? 'border-amber-500/50 bg-amber-950/10 shadow-lg shadow-amber-950/20' 
+            : 'border-slate-800 bg-slate-950/30'
+        }`;
+
+        const iconContainer = document.createElement('div');
+        iconContainer.className = `w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+          isUnlocked 
+            ? 'badge-unlocked bg-amber-500/10 border-amber-500/40' 
+            : 'badge-locked bg-slate-900 border-slate-800'
+        }`;
+        iconContainer.innerHTML = ach.icon;
+
+        const info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+
+        const titleText = isUnlocked ? ach.name : '??? (Secret Trophy)';
+        const titleClass = isUnlocked ? 'text-amber-300 font-bold' : 'text-slate-500 font-medium tracking-wide';
+        
+        info.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h4 class="font-cinzel text-xs ${titleClass} truncate">${titleText}</h4>
+            ${isUnlocked 
+              ? `<span class="text-[9px] bg-amber-500/20 text-amber-300 font-mono px-1.5 py-0.5 rounded border border-amber-500/30 font-bold">UNLOCKED</span>` 
+              : `<span class="text-[9px] text-slate-500 font-mono">LOCKED</span>`
+            }
+          </div>
+          <p class="text-[11px] text-slate-300 mt-0.5">${ach.req}</p>
+          <div class="mt-1 text-[10px] font-mono text-purple-400 font-semibold">${ach.bonusDesc}</div>
+        `;
+
+        card.appendChild(iconContainer);
+        card.appendChild(info);
+        grid.appendChild(card);
+      });
+    }
+
+    function unlockAchievement(id) {
+      if (state.achievements[id]) return; // already unlocked
+      const ach = ACHIEVEMENTS_DATA[id];
+      if (!ach) return;
+
+      state.achievements[id] = true;
+
+      // Apply bonuses immediately
+      if (ach.type === 'flat') {
+        state.lifetimeFlatBonus += ach.val;
+      } else if (ach.type === 'mult') {
+        state.lifetimeMultiplier *= ach.val;
+      }
+
+      saveState();
+      sound.playAchievementFanfare();
+
+      // Show Toast Notification
+      const toast = document.getElementById('toastAchievement');
+      document.getElementById('toastTitle').textContent = ach.name;
+      document.getElementById('toastDesc').textContent = ach.req;
+      document.getElementById('toastBonusTag').textContent = ach.bonusDesc;
+      document.getElementById('toastBadgeIcon').innerHTML = ach.icon;
+
+      toast.classList.remove('translate-y-[-150%]');
+      toast.classList.add('translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0');
+        toast.classList.add('translate-y-[-150%]');
+      }, 5000);
+
+      updateBankAndControlsUI();
+    }
+
+    function checkBiddingAchievements(bid, color) {
+      const counts = getBagCounts();
+
+      // Non Sequitur: Bid on orange or blue when the other is 2x likely or more
+      if (color === 'orange' && counts.blue >= counts.orange * 2 && counts.orange > 0) {
+        unlockAchievement('non_sequitur');
+      } else if (color === 'blue' && counts.orange >= counts.blue * 2 && counts.blue > 0) {
+        unlockAchievement('non_sequitur');
+      }
+
+      // Crossing the Rubicon: Go all in with at least 7 purple stones
+      if (bid === state.bank && state.bank >= 7) {
+        unlockAchievement('crossing_the_rubicon');
+      }
+
+      // Scylla and Charybdis: Equal split orange & blue with 1 purple stone left to bid
+      if (state.bank === 1 && counts.orange === counts.blue && counts.orange > 0) {
+        unlockAchievement('scylla_and_charybdis');
+      }
+    }
+
+    function checkPostDrawAchievements(bid, color, drawn, won) {
+      // Loaves and Fishes: Hit a bid of 1 on green
+      if (won && color === 'green' && bid === 1) {
+        unlockAchievement('loaves_and_fishes');
+      }
+
+      // Fifteen Minutes of Fame: Hit any green bid
+      if (won && color === 'green') {
+        unlockAchievement('fifteen_minutes');
+      }
+
+      // Crocodile Tears: Hit green after bidding on it at least 3 times previously in same round
+      if (won && color === 'green' && state.roundGreenBidsCount >= 4) {
+        unlockAchievement('crocodile_tears');
+      }
+
+      // Once in a Blue Moon: Bid blue for first time in round after turn 7 and win
+      if (won && color === 'blue' && state.turn > 7) {
+        const blueBidsPrior = state.turnHistory.filter(h => h.turn < state.turn && h.color === 'blue');
+        if (blueBidsPrior.length === 0) {
+          unlockAchievement('once_in_a_blue_moon');
+        }
+      }
+
+      // Pearls Before Swine: Lose at least 20 purple stones on a single bid
+      if (!won && bid >= 20) {
+        unlockAchievement('pearls_before_swine');
+      }
+
+      // Thirty Pieces of Silver: Lose 30 purple stones in a single bid
+      if (!won && bid >= 30) {
+        unlockAchievement('thirty_pieces_of_silver');
+        state.bank += 35; // +35 purple stones immediately for that round
+        showFloatingNotice('+35 Stones Restored! (Thirty Pieces of Silver)');
+      }
+
+      // Deus ex Machina: First time losing >= 50 purple stones
+      if (!won && bid >= 50 && !state.deusExTriggered) {
+        state.deusExTriggered = true;
+        unlockAchievement('deus_ex_machina');
+        state.bank += 60; // +60 purple stones immediately
+        showFloatingNotice('+60 Stones Bestowed! (Deus ex Machina)');
+      }
+
+      // Waterloo: Go all in on blue... and lose the bid
+      if (!won && color === 'blue' && bid === (state.bank + bid)) {
+        unlockAchievement('waterloo');
+      }
+
+      // All that Glitters Is Not Gold: Miss at least 5 bids on orange in a single round
+      if (!won && color === 'orange') {
+        state.roundOrangeMissesCount++;
+        if (state.roundOrangeMissesCount >= 5) {
+          unlockAchievement('all_that_glitters');
+        }
+      }
+
+      // Fiddle While Rome Burns: Bid at least 1 more than previous bid on 4 consecutive losing bids
+      if (!won) {
+        if (bid >= state.lastLossBidAmount + 1 && state.consecutiveAscendingLosses > 0) {
+          state.consecutiveAscendingLosses++;
+        } else {
+          state.consecutiveAscendingLosses = 1;
+        }
+        state.lastLossBidAmount = bid;
+        if (state.consecutiveAscendingLosses >= 4) {
+          unlockAchievement('fiddle_while_rome_burns');
+        }
+      } else {
+        state.consecutiveAscendingLosses = 0;
+        state.lastLossBidAmount = 0;
+      }
+
+      // Cassandra of Troy: Bid on orange or blue incorrectly for 9 straight turns
+      if (!won && (color === 'orange' || color === 'blue')) {
+        state.consecutiveOrangeOrBlueLosses++;
+        if (state.consecutiveOrangeOrBlueLosses >= 9) {
+          unlockAchievement('cassandra_of_troy');
+        }
+      } else {
+        state.consecutiveOrangeOrBlueLosses = 0;
+      }
+
+      // Holy Grail: Correctly guess 10 bids in a row
+      if (won) {
+        state.consecutiveGlobalWins++;
+        if (state.consecutiveGlobalWins >= 10) {
+          unlockAchievement('holy_grail');
+        }
+      } else {
+        state.consecutiveGlobalWins = 0;
+      }
+
+      // Babylon: Hit 200 purple stones in a single round
+      if (state.bank >= 200) {
+        unlockAchievement('babylon');
+      }
+
+      // Babylon 2.0: Earn 420 stones in lifetime
+      if (state.lifetimeStonesWon >= 420) {
+        unlockAchievement('babylon_2');
+      }
+    }
+
+    function checkRoundEndAchievements(turnsPlayed, allTurnsUsedSameColor, allOrange) {
+      // Tabula Rasa: First round played!
+      if (state.roundScores.length === 1) {
+        unlockAchievement('tabula_rasa');
+      }
+
+      // Golden Calf: Bid on orange each of 10 turns
+      if (turnsPlayed === 10 && allOrange) {
+        unlockAchievement('golden_calf');
+      }
+
+      // Achilles' Heel: Lose a round by betting on same color every time
+      if (state.bank <= 0 && allTurnsUsedSameColor) {
+        unlockAchievement('achilles_heel');
+      }
+
+      // Noble Savage: Bid against odds (EV < 1.0) every play of round for at least 8 plays
+      if (turnsPlayed >= 8) {
+        const allEvLow = state.turnHistory.every(h => h.evAtBid < 1.0);
+        if (allEvLow) {
+          unlockAchievement('noble_savage');
+        }
+      }
+
+      // Magnum Opus: Get new high round score for first time in at least 15 rounds
+      const currentScore = state.roundScores[state.roundScores.length - 1];
+      if (state.roundScores.length >= 15 && currentScore > state.previousHighScore) {
+        unlockAchievement('magnum_opus');
+        state.nextRoundBonusStones += 20;
+      }
+      if (currentScore > state.previousHighScore) {
+        state.previousHighScore = currentScore;
+      }
+    }
+
+    function castStone() {
+      if (state.isDrawing) return;
+      if (state.bank <= 0) return;
+
+      const bid = state.currentBid;
+      const color = state.selectedColor;
+      const mult = color === 'green' ? 15 : 2;
+
+      // Check Faustian Bargain trigger: first time chance to win >= 100 stones
+      const potentialWin = bid * mult;
+      if (potentialWin >= 100 && !state.faustianPresented && !state.achievements['faustian_bargain'] && !state.achievements['sacred_cow']) {
+        state.faustianPresented = true;
+        document.getElementById('modalFaustian').classList.remove('hidden');
+        return;
+      }
+
+      // Run bid checks
+      checkBiddingAchievements(bid, color);
+      if (color === 'green') state.roundGreenBidsCount++;
+      if (color === 'orange') state.roundOrangeBidsCount++;
+
+      // Lock UI
+      state.isDrawing = true;
+      document.getElementById('castSpinner').classList.remove('hidden');
+      document.getElementById('castBtnText').textContent = 'THE VELVET BAG STIRS...';
+      updateBankAndControlsUI();
+
+      // Sound & Bag Shake animation
+      sound.playBagRattle();
+      const bagWrapper = document.getElementById('bagGraphicWrapper');
+      bagWrapper.classList.add('animate-bag-shake');
+
+      // Calculate EV at this exact moment for Noble Savage tracking
+      const countsAtBid = getBagCounts();
+      const pColor = countsAtBid.total > 0 ? (countsAtBid[color] / countsAtBid.total) : 0;
+      const evAtBid = mult * pColor;
+
+      setTimeout(() => {
+        // Draw stone from bag without replacement
+        let drawnIndex = Math.floor(Math.random() * state.bag.length);
+
+        // Rigged draw from Faustian Bargain Option A
+        if (state.riggedLossNext) {
+          state.riggedLossNext = false;
+          // Pick a stone that does NOT match the player's chosen color
+          const nonMatchingIndices = [];
+          state.bag.forEach((st, idx) => {
+            if (st !== color) nonMatchingIndices.push(idx);
+          });
+          if (nonMatchingIndices.length > 0) {
+            drawnIndex = nonMatchingIndices[Math.floor(Math.random() * nonMatchingIndices.length)];
+          }
+        }
+
+        const drawnStone = state.bag.splice(drawnIndex, 1)[0];
+        const won = (drawnStone === color);
+
+        bagWrapper.classList.remove('animate-bag-shake');
+        sound.playStoneClack();
+
+        // Animate stone emergence
+        const drawnContainer = document.getElementById('drawnStoneContainer');
+        const orb = document.getElementById('drawnStoneOrb');
+        const label = document.getElementById('drawnStoneLabel');
+        const badge = document.getElementById('drawnStoneResultBadge');
+
+        label.textContent = drawnStone.toUpperCase();
+
+        if (drawnStone === 'orange') {
+          orb.className = 'w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-2xl relative bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 shadow-amber-500/80 animate-stone-draw';
+        } else if (drawnStone === 'blue') {
+          orb.className = 'w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-2xl relative bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-300 shadow-blue-500/80 animate-stone-draw';
+        } else {
+          orb.className = 'w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-2xl relative bg-gradient-to-tr from-emerald-600 via-emerald-500 to-emerald-300 shadow-emerald-500/80 animate-stone-draw';
+        }
+
+        if (won) {
+          const profit = bid * mult - bid;
+          state.bank += profit;
+          state.lifetimeStonesWon += profit;
+          badge.textContent = `CORRECT! +${profit} STONES`;
+          badge.className = 'mt-2 text-xs font-bold px-3 py-1 rounded-full shadow-lg border bg-emerald-950/80 border-emerald-400 text-emerald-300';
+          sound.playWinFanfare();
+
+          // Streak update: only consecutive wins of SAME color
+          if (state.currentSameStreakColor === color) {
+            state.currentSameStreakCount++;
+          } else {
+            state.currentSameStreakColor = color;
+            state.currentSameStreakCount = 1;
+          }
+          if (state.currentSameStreakCount > state.longestSameStreakThisRound) {
+            state.longestSameStreakThisRound = state.currentSameStreakCount;
+          }
+        } else {
+          state.bank -= bid;
+          badge.textContent = `MISSED! -${bid} STONES`;
+          badge.className = 'mt-2 text-xs font-bold px-3 py-1 rounded-full shadow-lg border bg-rose-950/80 border-rose-500 text-rose-300';
+          sound.playLossBuzz();
+
+          // Reset streak on loss
+          state.currentSameStreakColor = null;
+          state.currentSameStreakCount = 0;
+        }
+
+        drawnContainer.classList.remove('opacity-0', 'scale-50');
+        drawnContainer.classList.add('opacity-100', 'scale-100');
+
+        // Record turn
+        state.turnHistory.push({
+          turn: state.turn,
+          color,
+          bid,
+          drawn: drawnStone,
+          won,
+          netProfit: won ? (bid * mult - bid) : -bid,
+          evAtBid
+        });
+
+        // Achievements triggers
+        checkPostDrawAchievements(bid, color, drawnStone, won);
+
+        // Update displays
+        renderTurnHistoryStrip();
+        updateOddsAndBagUI();
+        updateBankAndControlsUI();
+
+        // Finish draw resolution after viewing delay
+        setTimeout(() => {
+          drawnContainer.classList.remove('opacity-100', 'scale-100');
+          drawnContainer.classList.add('opacity-0', 'scale-50');
+          state.isDrawing = false;
+          document.getElementById('castSpinner').classList.add('hidden');
+          document.getElementById('castBtnText').textContent = 'CAST YOUR BID & DRAW STONE';
+
+          // Turn progression or Round End
+          if (state.bank <= 0 || state.turn >= 10) {
+            concludeRound();
+          } else {
+            state.turn++;
+            updateBankAndControlsUI();
+            renderTurnHistoryStrip();
+          }
+        }, 1200);
+
+      }, 850);
+    }
+
+    function concludeRound() {
+      const T = state.turnHistory.length; // turns taken (max 10)
+      const X = T / 10.0;
+      const P = state.bank; // purple stones at end
+      const lastTurn = state.turnHistory[state.turnHistory.length - 1];
+      const G = (state.bank <= 0 && lastTurn && lastTurn.color === 'green' && !lastTurn.won) ? 1 : 0;
+      const F = T === 10 ? 1 : 0;
+
+      // S multiplier rule: S equals 1 until player gets a streak of >= 3 same-color consecutive wins
+      const rawStreak = Math.max(1, state.longestSameStreakThisRound);
+      const S = rawStreak >= 3 ? rawStreak : 1;
+
+      // Formula: ((X^2) * P  - ((X^2) * P * (.5 * G)) + 7 * T + 7 * F ) * ( S ^ (3/7) )
+      const xSqP = (X * X) * P;
+      const greenPenalty = xSqP * (0.5 * G);
+      const turnsBonus = 7 * T;
+      const finishBonus = 7 * F;
+      const streakFactor = Math.pow(S, 3 / 7);
+
+      const roundScore = (xSqP - greenPenalty + turnsBonus + finishBonus) * streakFactor;
+      state.roundScores.push(roundScore);
+
+      // Round check flags
+      const firstColor = state.turnHistory[0]?.color;
+      const allTurnsUsedSameColor = state.turnHistory.every(h => h.color === firstColor);
+      const allOrange = state.turnHistory.every(h => h.color === 'orange');
+
+      checkRoundEndAchievements(T, allTurnsUsedSameColor, allOrange);
+      saveState();
+
+      document.getElementById('summaryT').textContent = T;
+      document.getElementById('summaryX').textContent = X.toFixed(2);
+      document.getElementById('summaryP').textContent = P;
+      document.getElementById('summaryG').textContent = G;
+      document.getElementById('summaryF').textContent = F;
+      document.getElementById('summaryS').textContent = rawStreak >= 3
+        ? `${rawStreak} (S=${S}, ${streakFactor.toFixed(2)}x)`
+        : `${rawStreak} (<3 streak, S=1, 1.00x)`;
+
+      document.getElementById('summaryRoundScore').textContent = roundScore.toFixed(2);
+      document.getElementById('summaryLifetimeScore').textContent = calculateLifetimeScore().toFixed(2);
+
+      const bonusNotice = document.getElementById('summaryBonusNotice');
+      if (state.nextRoundBonusStones > 0) {
+        bonusNotice.textContent = `Bonus: You will start the next round with ${7 + state.nextRoundBonusStones} Purple Stones!`;
+        bonusNotice.classList.remove('hidden');
+      } else {
+        bonusNotice.classList.add('hidden');
+      }
+
+      document.getElementById('modalRoundOver').classList.remove('hidden');
+    }
+
+    function startNextRound() {
+      document.getElementById('modalRoundOver').classList.add('hidden');
+
+      state.roundNumber++;
+      state.bank = 7 + state.nextRoundBonusStones;
+      state.nextRoundBonusStones = 0;
+      state.turn = 1;
+      state.turnHistory = [];
+      state.longestSameStreakThisRound = 1;
+      state.currentSameStreakColor = null;
+      state.currentSameStreakCount = 0;
+      state.consecutiveOrangeOrBlueLosses = 0;
+      state.consecutiveAscendingLosses = 0;
+      state.lastLossBidAmount = 0;
+      state.roundOrangeBidsCount = 0;
+      state.roundOrangeMissesCount = 0;
+      state.roundGreenBidsCount = 0;
+      state.currentBid = 1;
+
+      resetBag();
+      updateOddsAndBagUI();
+      updateBankAndControlsUI();
+      renderTurnHistoryStrip();
+    }
+
+    function handleFaustianChoice(choice) {
+      document.getElementById('modalFaustian').classList.add('hidden');
+
+      if (choice === 'A') {
+        // Option A: Faustian Bargain achievement (+17 to lifetime score)
+        // Ensure they LOSE the bid! (rigged)
+        unlockAchievement('faustian_bargain');
+        state.riggedLossNext = true;
+        showFloatingNotice('A pact is sealed... The stones shift.');
+        // Proceed with the cast
+        castStone();
+      } else {
+        // Option B: Sacred Cow achievement (Multiply lifetime score by 1.2x)
+        // Take all stones for the round, start next round with 14 purple stones!
+        unlockAchievement('sacred_cow');
+        state.bank = 0;
+        state.nextRoundBonusStones = 7; // 7 base + 7 = 14 stones next round
+        showFloatingNotice('Your benevolence shines in Mozambique. Round forfeited with honor!');
+        concludeRound();
+      }
+    }
+
+    function showFloatingNotice(msg) {
+      const el = document.createElement('div');
+      el.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-purple-500/60 text-purple-200 text-xs px-4 py-2 rounded-full shadow-2xl backdrop-blur-md animate-bounce';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => {
+        el.remove();
+      }, 3500);
+    }
+
+    function setupEventListeners() {
+      // Color selection
+      document.querySelectorAll('.btn-color-pick').forEach(btn => {
+        btn.addEventListener('click', () => {
+          sound.playClick();
+          state.selectedColor = btn.getAttribute('data-color');
+          updateBankAndControlsUI();
+        });
+      });
+
+      // Bid stepper buttons
+      document.getElementById('btnBidMinus').addEventListener('click', () => {
+        sound.playClick();
+        state.currentBid = Math.max(1, state.currentBid - 1);
+        updateBankAndControlsUI();
+      });
+
+      document.getElementById('btnBidPlus').addEventListener('click', () => {
+        sound.playClick();
+        state.currentBid = Math.min(state.bank, state.currentBid + 1);
+        updateBankAndControlsUI();
+      });
+
+      document.getElementById('inputBidAmount').addEventListener('input', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val)) val = 1;
+        state.currentBid = Math.min(state.bank, Math.max(1, val));
+        updateBankAndControlsUI();
+      });
+
+      // Quick Bid chips
+      document.querySelectorAll('.btn-quick-bid').forEach(btn => {
+        btn.addEventListener('click', () => {
+          sound.playClick();
+          const type = btn.getAttribute('data-bid-type');
+          if (type === 'min') state.currentBid = 1;
+          else if (type === 'add1') state.currentBid = Math.min(state.bank, state.currentBid + 1);
+          else if (type === 'add5') state.currentBid = Math.min(state.bank, state.currentBid + 5);
+          else if (type === 'half') state.currentBid = Math.max(1, Math.floor(state.bank / 2));
+          else if (type === 'max') state.currentBid = state.bank;
+          updateBankAndControlsUI();
+        });
+      });
+
+      // Cast Stone button
+      document.getElementById('btnCastStone').addEventListener('click', () => {
+        castStone();
+      });
+
+      // Click on bag graphic directly also casts stone
+      document.getElementById('bagGraphicWrapper').addEventListener('click', () => {
+        if (!state.isDrawing && state.bank > 0) {
+          castStone();
+        }
+      });
+
+      // Next round button
+      document.getElementById('btnStartNextRound').addEventListener('click', () => {
+        sound.playClick();
+        startNextRound();
+      });
+
+      // Sound toggle
+      document.getElementById('btnToggleSound').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        sound.enabled = state.soundEnabled;
+        document.getElementById('soundIconOn').classList.toggle('hidden', !state.soundEnabled);
+        document.getElementById('soundIconOff').classList.toggle('hidden', state.soundEnabled);
+        saveState();
+        if (state.soundEnabled) sound.playClick();
+      });
+
+      // Modals
+      document.getElementById('btnOpenAchievements').addEventListener('click', () => {
+        sound.playClick();
+        renderAchievementsModal();
+        document.getElementById('modalAchievements').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseAchievements').addEventListener('click', () => {
+        document.getElementById('modalAchievements').classList.add('hidden');
+      });
+      document.getElementById('btnCloseAchievementsFooter').addEventListener('click', () => {
+        document.getElementById('modalAchievements').classList.add('hidden');
+      });
+
+      document.getElementById('btnOpenRules').addEventListener('click', () => {
+        sound.playClick();
+        document.getElementById('modalRules').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseRules').addEventListener('click', () => {
+        document.getElementById('modalRules').classList.add('hidden');
+      });
+
+      // Faustian Bargain Options
+      document.getElementById('btnFaustianOptionA').addEventListener('click', () => {
+        handleFaustianChoice('A');
+      });
+      document.getElementById('btnFaustianOptionB').addEventListener('click', () => {
+        handleFaustianChoice('B');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      resetBag();
+      setupEventListeners();
+      updateOddsAndBagUI();
+      updateBankAndControlsUI();
+      renderTurnHistoryStrip();
+    });
+  </script>
+</body>
+</html>
